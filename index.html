@@ -179,9 +179,18 @@
             overflow: hidden !important;
         }
 
-        /* Ensure interactive elements show they are clickable even with custom cursor */
-        a, button, [role="button"], input, textarea, select {
-            cursor: none !important;
+        /* Ensure interactive elements show they are clickable even with custom cursor (Desktop Only) */
+        @media (min-width: 769px) {
+            a, button, [role="button"], input, textarea, select {
+                cursor: none !important;
+            }
+        }
+
+        /* Hide mouse follower completely on mobile */
+        @media (max-width: 768px) {
+            .mf-cursor {
+                display: none !important;
+            }
         }
     </style>
 <script type="importmap">
@@ -196,7 +205,6 @@
   }
 }
 </script>
-<link rel="stylesheet" href="/index.css">
 </head>
 <body class="bg-[#f0f0f0] text-[#111111]">
     <div id="particles-js"></div>

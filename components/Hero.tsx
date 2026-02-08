@@ -130,7 +130,7 @@ const Hero: React.FC = () => {
         </div>
       </div>
 
-      <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-3 animate-entrance-up delay-2800 pointer-events-none">
+      <div className="absolute bottom-8 left-0 right-0 mx-auto w-fit flex flex-col items-center gap-3 animate-entrance-up delay-2800 pointer-events-none">
           <span className="text-[10px] font-black text-[#999999] tracking-[0.2em] uppercase">اسحب للأسفل</span>
           <div className="relative w-6 h-10 rounded-full border-2 border-[#D1D1D1] flex justify-center p-1 overflow-hidden">
              <div className="w-1 h-2 bg-[#EF7F17] rounded-full animate-scroll-indicator"></div>

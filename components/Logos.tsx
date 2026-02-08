@@ -19,7 +19,7 @@ const Logos: React.FC = () => {
         {/* ملصق العنوان الجانبي - ثابت في اليمين */}
           <div className="reveal inline-flex items-center gap-2 bg-[#203C71] px-4 py-2.5 rounded-[25px] shadow-lg" style={{ transitionDelay: '0ms' }}>
             <span className="text-[#EF7F17] font-black text-[12px] tracking-tight">//</span>
-            <span className="text-white font-black text-[12px] tracking-tight uppercase">الأسئلة الشائعة</span>
+            <span className="text-white font-black text-[12px] tracking-tight uppercase">عملأنا</span>
             <span className="text-[#EF7F17] font-black text-[12px] tracking-tight">//</span>
           </div>
         
