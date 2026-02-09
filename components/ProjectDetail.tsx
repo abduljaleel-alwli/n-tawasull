@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect, useMemo, useRef } from 'react';
-import { ArrowRight, Link as LinkIcon, MessageCircle, ArrowLeft, Loader2 } from 'lucide-react';
+import { ArrowRight, Link as LinkIcon, MessageCircle, ArrowLeft, Loader2, Play } from 'lucide-react';
 
 interface ProjectDetailProps {
   project: {
@@ -268,6 +268,68 @@ const ProjectDetail: React.FC<ProjectDetailProps> = ({ project, allProjects, onP
               </div>
               <div className="lg:col-span-6 rounded-[20px] overflow-hidden aspect-square bg-[#e5e5e5]">
                  <img src="https://images.unsplash.com/photo-1542744173-8e7e53415bb0?auto=format&fit=crop&q=80&w=1200" className="w-full h-full object-cover" alt="Detail 3" />
+              </div>
+            </div>
+          </section>
+
+          {/* New Video Showcase Section */}
+          <section className="mb-32 reveal" style={{ transitionDelay: '300ms' }}>
+            <div className="flex flex-col items-start gap-4 mb-12">
+              <div className="inline-flex items-center gap-2 bg-[#203C71] px-4 py-2 rounded-full shadow-lg">
+                <span className="text-[#EF7F17] font-black text-[12px] tracking-tight">//</span>
+                <span className="text-white text-[12px] font-black tracking-widest uppercase">استعراض مرئي</span>
+              </div>
+              <h2 className="text-3xl md:text-5xl font-black text-[#203C71] tracking-tight">التجربة الحية.</h2>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+              {/* Video 1: YouTube */}
+              <div className="group space-y-5 reveal transition-all duration-700" style={{ transitionDelay: '400ms' }}>
+                <div className="relative rounded-[32px] overflow-hidden aspect-video bg-[#E5E5E5] shadow-2xl transition-transform duration-500 group-hover:-translate-y-2 border-4 border-white/50">
+                  <iframe 
+                    className="absolute inset-0 w-full h-full"
+                    src="https://www.youtube.com/embed/dQw4w9WgXcQ?autoplay=0&mute=0" 
+                    title="Video Showcase 1"
+                    frameBorder="0" 
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+                    allowFullScreen
+                  ></iframe>
+                </div>
+                <div className="pr-2">
+                  <h4 className="text-xl md:text-2xl font-black text-[#203C71] leading-tight group-hover:text-[#EF7F17] transition-colors duration-300">تغطية شاملة للحدث</h4>
+                </div>
+              </div>
+
+              {/* Video 2: Vimeo */}
+              <div className="group space-y-5 reveal transition-all duration-700" style={{ transitionDelay: '550ms' }}>
+                <div className="relative rounded-[32px] overflow-hidden aspect-video bg-[#E5E5E5] shadow-2xl transition-transform duration-500 group-hover:-translate-y-2 border-4 border-white/50">
+                  <iframe 
+                    className="absolute inset-0 w-full h-full"
+                    src="https://player.vimeo.com/video/76979871?h=8272b0486b&title=0&byline=0&portrait=0" 
+                    frameBorder="0" 
+                    allow="autoplay; fullscreen; picture-in-picture" 
+                    allowFullScreen
+                  ></iframe>
+                </div>
+                <div className="pr-2">
+                  <h4 className="text-xl md:text-2xl font-black text-[#203C71] leading-tight group-hover:text-[#EF7F17] transition-colors duration-300">هوية بصرية متحركة</h4>
+                </div>
+              </div>
+
+              {/* Video 3: External / iFrame */}
+              <div className="group space-y-5 reveal transition-all duration-700" style={{ transitionDelay: '700ms' }}>
+                <div className="relative rounded-[32px] overflow-hidden aspect-video bg-[#E5E5E5] shadow-2xl transition-transform duration-500 group-hover:-translate-y-2 border-4 border-white/50">
+                  <iframe 
+                    className="absolute inset-0 w-full h-full"
+                    src="https://www.youtube.com/embed/vH8p326U5s0" 
+                    frameBorder="0" 
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+                    allowFullScreen
+                  ></iframe>
+                </div>
+                <div className="pr-2">
+                  <h4 className="text-xl md:text-2xl font-black text-[#203C71] leading-tight group-hover:text-[#EF7F17] transition-colors duration-300">كواليس العمل الإبداعي</h4>
+                </div>
               </div>
             </div>
           </section>
