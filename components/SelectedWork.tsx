@@ -1,5 +1,5 @@
-import { Link as LinkIcon } from 'lucide-react';
-import React from 'react';
+import { Link as LinkIcon, Layers, Plus, Loader2 } from 'lucide-react';
+import React, { useState, useMemo, useEffect } from 'react';
 
 interface SelectedWorkProps {
   projects: any[];
@@ -7,16 +7,50 @@ interface SelectedWorkProps {
 }
 
 const SelectedWork: React.FC<SelectedWorkProps> = ({ projects, onProjectClick }) => {
+  const [activeFilter, setActiveFilter] = useState('الكل');
+  const [visibleCount, setVisibleCount] = useState(3);
+  const [isLoading, setIsLoading] = useState(false);
   const cardShadow = "rgba(0, 0, 0, 0.1) 0px 4px 12px";
+
+  // Reset visible count when filter changes
+  useEffect(() => {
+    setVisibleCount(3);
+  }, [activeFilter]);
+
+  const categories = useMemo(() => {
+    const cats = ['الكل'];
+    projects.forEach(p => {
+      if (!cats.includes(p.category)) cats.push(p.category);
+    });
+    return cats;
+  }, [projects]);
+
+  const filteredProjects = activeFilter === 'الكل' 
+    ? projects 
+    : projects.filter(p => p.category === activeFilter);
+
+  const displayedProjects = filteredProjects.slice(0, visibleCount);
+  const hasMore = visibleCount < filteredProjects.length;
+
+  const handleLoadMore = () => {
+    if (isLoading) return;
+    setIsLoading(true);
+    
+    // Simulate professional loading delay for aesthetic feel
+    setTimeout(() => {
+      setVisibleCount(prev => prev + 3);
+      setIsLoading(false);
+    }, 1000);
+  };
 
   return (
     <section id="work" className="py-24 px-6 md:px-12 max-w-[1350px] mx-auto" dir="rtl">
       <div className="flex flex-col lg:flex-row justify-between items-start lg:items-end mb-12 md:mb-16 lg:mb-20 gap-8 text-right">
         <div className="flex flex-col items-start gap-4 md:gap-6 w-full lg:w-auto">
-          <div className="reveal inline-flex items-center gap-2 bg-[#203C71] px-4 py-2.5 rounded-full shadow-xl" style={{ transitionDelay: '0ms' }}>
-            <span className="text-[#EF7F17] font-black text-[12px] tracking-tight">//</span>
+          <div className="reveal inline-flex items-center gap-2 bg-primary px-4 py-2.5 rounded-full shadow-xl" style={{ transitionDelay: '0ms' }}>
+            <span className="text-secondary font-black text-[12px] tracking-tight">//</span>
             <span className="text-white text-[12px] font-black tracking-widest uppercase">أعمالنا</span>
-            <span className="text-[#EF7F17] font-black text-[12px] tracking-tight">//</span>
+            <span className="text-secondary font-black text-[12px] tracking-tight">//</span>
           </div>
           <h2 className="reveal text-3xl sm:text-4xl md:text-6xl font-black text-[#111111] leading-[1.25] md:leading-[1.2] tracking-normal" style={{ transitionDelay: '200ms' }}>
             ماذا أضفنا لعملائنا؟
@@ -29,16 +63,35 @@ const SelectedWork: React.FC<SelectedWorkProps> = ({ projects, onProjectClick })
         </div>
       </div>
 
-      <div className="reveal grid grid-cols-1 md:grid-cols-3 gap-2 transition-none" style={{ transitionDelay: '500ms' }}>
-        {projects.map((work, idx) => (
+      {/* Advanced Filter Bar */}
+      <div className="reveal mb-12 flex flex-col md:flex-row md:items-center justify-between gap-6" style={{ transitionDelay: '450ms' }}>
+        <div className="flex flex-wrap gap-2.5">
+           {categories.map((cat) => (
+             <button
+              key={cat}
+              onClick={() => setActiveFilter(cat)}
+              className={`px-6 py-2.5 rounded-full text-[13px] font-black transition-all duration-500 border ${activeFilter === cat ? 'bg-primary border-primary text-white shadow-xl' : 'bg-white border-gray-100 text-[#888888] hover:border-secondary hover:text-secondary'}`}
+              data-cursor-text="فلترة"
+             >
+               {cat}
+             </button>
+           ))}
+        </div>
+        <div className="hidden lg:flex items-center gap-2 text-[#999999] text-xs font-black uppercase tracking-widest">
+           <Layers size={14} />
+           <span>عرض {filteredProjects.length} مشروع</span>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-3 transition-all duration-500 min-h-[400px]">
+        {displayedProjects.map((work, idx) => (
           <div 
-            key={work.id} 
+            key={`${work.id}-${activeFilter}`} 
             onClick={() => onProjectClick && onProjectClick(work)}
             data-cursor-text="عرض المشروع"
-            className={`group relative rounded-[20px] overflow-hidden bg-[#e5e5e5] cursor-pointer shadow-sm transition-all duration-700 opacity-0 translate-y-8 [.reveal-visible_&]:opacity-100 [.reveal-visible_&]:translate-y-0`}
+            className={`group relative rounded-[20px] overflow-hidden bg-[#e5e5e5] cursor-pointer shadow-sm animate-entrance-up`}
             style={{ 
-                transitionDelay: `${600 + (idx * 150)}ms`,
-                transitionTimingFunction: 'cubic-bezier(0.16, 1, 0.3, 1)'
+                animationDelay: `${(idx % 3) * 100}ms`
             }}
           >
             <div className="overflow-hidden relative w-full aspect-[3.7/4]">
@@ -52,31 +105,62 @@ const SelectedWork: React.FC<SelectedWorkProps> = ({ projects, onProjectClick })
 
             <div className="absolute inset-x-4 sm:inset-x-5 md:inset-x-6 bottom-4 sm:bottom-5 md:bottom-6 z-20 transition-all duration-700 transform translate-y-0 opacity-100 md:translate-y-6 md:opacity-0 md:group-hover:translate-y-0 md:group-hover:opacity-100">
               <div 
-                className="bg-[#f0f0f0] rounded-[24px] p-4 sm:p-5 flex items-center justify-between shadow-2xl border border-white/20"
+                className="bg-background rounded-[24px] p-4 sm:p-5 flex items-center justify-between shadow-2xl border border-white/20"
                 style={{ boxShadow: cardShadow }}
               >
                 <div className="flex flex-col text-right pr-2">
                   <h3 className="text-lg sm:text-xl font-black text-[#111111] leading-tight">{work.title}</h3>
                   <p className="text-[#888888] text-[11px] sm:text-xs md:text-sm font-bold tracking-tight uppercase mt-0.5">{work.category}</p>
                 </div>
-                <div className="w-12 h-12 sm:w-14 sm:h-14 bg-[#203C71] rounded-[16px] sm:rounded-[20px] flex items-center justify-center text-white transition-all duration-500 hover:bg-[#EF7F17] hover:rotate-[-45deg] shrink-0 shadow-lg">
+                <div className="w-12 h-12 sm:w-14 sm:h-14 bg-primary rounded-[16px] sm:rounded-[20px] flex items-center justify-center text-white transition-all duration-500 hover:bg-secondary hover:rotate-[-45deg] shrink-0 shadow-lg">
                   <LinkIcon size={20} className="sm:scale-110" strokeWidth={3} />
                 </div>
               </div>
             </div>
           </div>
         ))}
+        {filteredProjects.length === 0 && (
+          <div className="col-span-full py-20 text-center">
+            <p className="text-[#999999] font-bold text-lg italic">لا توجد مشاريع في هذه الفئة حالياً...</p>
+          </div>
+        )}
       </div>
       
-      <div className="reveal mt-16 md:mt-24 lg:mt-32 text-center px-4" style={{ transitionDelay: '1000ms' }}>
-        <button 
-          data-cursor-text="تصفح الآن"
-          className="group relative w-full sm:w-auto min-w-[280px] px-12 py-6 md:px-20 md:py-8 bg-[#203C71] text-white rounded-full font-black text-lg md:text-xl overflow-hidden transition-all duration-500 hover:scale-105 active:scale-95 shadow-2xl"
-        >
-          <span className="relative z-10 transition-colors duration-500 group-hover:text-white">تصفح كافة المشاريع</span>
-          <div className="absolute inset-0 bg-[#EF7F17] translate-y-full group-hover:translate-y-0 transition-transform duration-500 ease-[cubic-bezier(0.16,1,0.3,1)]"></div>
-        </button>
-      </div>
+      {/* Modern Professional Load More Button */}
+      {hasMore && (
+        <div className="reveal mt-16 text-center" style={{ transitionDelay: '200ms' }}>
+          <button 
+            onClick={handleLoadMore}
+            disabled={isLoading}
+            data-cursor-text={isLoading ? "انتظر" : "استكشف المزيد"}
+            className={`group relative inline-flex items-center gap-6 bg-primary text-white rounded-full pr-10 pl-2 py-2.5 transition-all duration-700 ease-[cubic-bezier(0.16,1,0.3,1)] active:scale-95 shadow-2xl overflow-hidden ${isLoading ? 'opacity-80 cursor-wait pr-12' : ''}`}
+          >
+            <span className="relative z-10 font-black text-lg flex items-center gap-3">
+              {isLoading ? (
+                <>
+                  <span className="animate-pulse">جاري تحميل المشاريع...</span>
+                </>
+              ) : (
+                'تحميل المزيد من الأعمال'
+              )}
+            </span>
+            
+            <div className={`w-14 h-14 bg-secondary rounded-full flex items-center justify-center text-primary transition-all duration-500 shadow-inner ${isLoading ? 'animate-spin bg-white/20 text-white' : 'group-hover:rotate-90'}`}>
+              {isLoading ? (
+                <Loader2 size={28} strokeWidth={3} className="animate-spin" />
+              ) : (
+                <Plus size={32} strokeWidth={3.5} />
+              )}
+            </div>
+
+            {/* Glass Background Highlight */}
+            <div className={`absolute inset-0 bg-white/10 -translate-x-full group-hover:translate-x-full transition-transform duration-[1200ms] ease-in-out pointer-events-none ${isLoading ? 'hidden' : ''}`}></div>
+            
+            {/* Loading Progress Background */}
+            <div className={`absolute bottom-0 right-0 h-1 bg-secondary transition-all duration-[1200ms] ease-out ${isLoading ? 'w-full opacity-100' : 'w-0 opacity-0'}`}></div>
+          </button>
+        </div>
+      )}
     </section>
   );
 };

@@ -6,6 +6,19 @@
     <title>نقطة تواصل | شريكك التسويقي الاستراتيجي</title>
     <link rel="icon" type="image/png" href="/logo.png">
     <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            colors: {
+              primary: 'var(--primary)',
+              secondary: 'var(--secondary)',
+              background: 'var(--background)',
+            }
+          }
+        }
+      }
+    </script>
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
     
     <!-- Mouse Follower CSS -->
@@ -19,10 +32,16 @@
     <script src="https://cdn.jsdelivr.net/particles.js/2.0.0/particles.min.js"></script>
 
     <style>
+        :root {
+            --primary: #203C71;
+            --secondary: #EF7F17;
+            --background: #f0f0f0;
+        }
+
         body {
             font-family: 'Cairo', sans-serif;
             scroll-behavior: smooth;
-            background-color: #f0f0f0;
+            background-color: var(--background);
             overflow-x: hidden;
             /* cursor: none; */
         }
@@ -41,16 +60,16 @@
 
         /* Customize Mouse Follower Identity */
         .mf-cursor {
-            color: #EF7F17; /* Text color inside cursor */
+            color: var(--secondary); /* Text color inside cursor */
             z-index: 1000;
         }
         .mf-cursor:before {
-            background: #203C71; /* Main circle color */
+            background: var(--primary); /* Main circle color */
             opacity: 0.15;
         }
         .mf-cursor.-text:before {
             opacity: 1;
-            background: #203C71;
+            background: var(--primary);
         }
         .mf-cursor.-pointer:before {
             transform: scale(2);
@@ -165,7 +184,7 @@
             width: 8px;
         }
         ::-webkit-scrollbar-track {
-            background: #f0f0f0;
+            background: var(--background);
         }
         ::-webkit-scrollbar-thumb {
             background: #d1d1d1;
@@ -206,7 +225,7 @@
 }
 </script>
 </head>
-<body class="bg-[#f0f0f0] text-[#111111]">
+<body class="bg-background text-[#111111]">
     <div id="particles-js"></div>
     <div id="root" class="relative z-10"></div>
     <script type="module" src="/index.tsx"></script>

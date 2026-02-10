@@ -1,11 +1,9 @@
-
 import React, { useState, useEffect } from 'react';
 import Navbar from './components/Navbar';
 import Hero from './components/Hero';
 import Services from './components/Services';
 import Benefits from './components/Benefits';
 import SelectedWork from './components/SelectedWork';
-import Pricing from './components/Pricing';
 import Reviews from './components/Reviews';
 import Logos from './components/Logos';
 import FAQ from './components/FAQ';
@@ -135,7 +133,6 @@ const App: React.FC = () => {
           <section id="services"><Services /></section>
           <section id="benefits"><Benefits /></section>
           <section id="work"><SelectedWork projects={workItems} onProjectClick={handleProjectClick} /></section>
-          <section id="pricing"><Pricing /></section>
           <section id="reviews"><Reviews /></section>
           <Logos />
           <section id="faqs"><FAQ /></section>
@@ -144,7 +141,7 @@ const App: React.FC = () => {
         </div>
 
         <div 
-          className={`fixed inset-0 z-[250] bg-[#f0f0f0] dramatic-transition 
+          className={`fixed inset-0 z-[250] bg-background dramatic-transition 
             ${appState === 'home' ? 'detail-hidden-bottom' : ''}
             ${appState === 'to-detail' ? 'detail-active' : ''}
             ${appState === 'detail' ? 'detail-active' : ''}

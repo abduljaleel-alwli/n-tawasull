@@ -1,4 +1,3 @@
-
 import React from 'react';
 
 const logos = [
@@ -17,10 +16,10 @@ const Logos: React.FC = () => {
       <div className="max-w-[1400px] mx-auto px-6 md:px-12 flex flex-row items-center gap-10">
         
         {/* ملصق العنوان الجانبي - ثابت في اليمين */}
-          <div className="reveal inline-flex items-center gap-2 bg-[#203C71] px-4 py-2.5 rounded-[25px] shadow-lg" style={{ transitionDelay: '0ms' }}>
-            <span className="text-[#EF7F17] font-black text-[12px] tracking-tight">//</span>
+          <div className="reveal inline-flex items-center gap-2 bg-primary px-4 py-2.5 rounded-[25px] shadow-lg" style={{ transitionDelay: '0ms' }}>
+            <span className="text-secondary font-black text-[12px] tracking-tight">//</span>
             <span className="text-white font-black text-[12px] tracking-tight uppercase">عملأنا</span>
-            <span className="text-[#EF7F17] font-black text-[12px] tracking-tight">//</span>
+            <span className="text-secondary font-black text-[12px] tracking-tight">//</span>
           </div>
         
         {/* 

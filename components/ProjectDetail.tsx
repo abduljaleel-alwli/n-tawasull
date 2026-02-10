@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { ArrowRight, Link as LinkIcon, MessageCircle, ArrowLeft, Loader2, Play } from 'lucide-react';
 
@@ -133,14 +132,14 @@ const ProjectDetail: React.FC<ProjectDetailProps> = ({ project, allProjects, onP
   return (
     <div 
       ref={containerRef}
-      className={`bg-[#f0f0f0] min-h-screen pb-32 relative ${getContainerStyles()}`} 
+      className={`bg-background min-h-screen pb-32 relative ${getContainerStyles()}`} 
       dir="rtl"
     >
       <div className={`sticky top-0 left-0 right-0 z-[210] transition-all duration-300 ${isScrolled ? 'py-3' : 'py-6'}`}>
         <div className="relative px-6 md:px-12 max-w-[1350px] mx-auto flex justify-between items-center z-10">
             <button 
               onClick={onBack}
-              className="group relative z-50 inline-flex items-center rounded-full pr-1.5 sm:pr-8 pl-1.5 py-1.5 transition-all duration-700 ease-[cubic-bezier(0.23,1,0.32,1)] active:scale-95 shadow-xl overflow-hidden bg-white text-[#203C71]"
+              className="group relative z-50 inline-flex items-center rounded-full pr-1.5 sm:pr-8 pl-1.5 py-1.5 transition-all duration-700 ease-[cubic-bezier(0.23,1,0.32,1)] active:scale-95 shadow-xl overflow-hidden bg-white text-primary"
               data-cursor-text="عودة"
             >
               <div className="relative h-6 overflow-hidden ml-5 pointer-events-none hidden sm:inline-block">
@@ -150,7 +149,7 @@ const ProjectDetail: React.FC<ProjectDetailProps> = ({ project, allProjects, onP
                 </div>
               </div>
 
-              <div className="w-10 h-10 rounded-full relative overflow-hidden bg-[#203C71] text-white shrink-0">
+              <div className="w-10 h-10 rounded-full relative overflow-hidden bg-primary text-white shrink-0">
                 <div className="absolute inset-0 flex items-center justify-center transition-transform duration-700 ease-[cubic-bezier(0.23,1,0.32,1)] group-hover:translate-x-full">
                   <ArrowRight size={18} strokeWidth={3} />
                 </div>
@@ -161,10 +160,10 @@ const ProjectDetail: React.FC<ProjectDetailProps> = ({ project, allProjects, onP
             </button>
 
             <div className={`flex items-center gap-3 transition-all duration-500 ${isScrolled ? 'bg-white/50 border-white/40 border border-black/5 shadow-sm' : 'bg-transparent border-transparent'} backdrop-blur-sm px-3 py-1.5 rounded-full border`}>
-               <span className={`text-[10px] font-black tracking-widest uppercase opacity-60 hidden sm:inline-block ${isScrolled ? 'text-[#EF7F17]' : 'text-[#888888]'}`}>قيد القراءة</span>
+               <span className={`text-[10px] font-black tracking-widest uppercase opacity-60 hidden sm:inline-block ${isScrolled ? 'text-secondary' : 'text-[#888888]'}`}>قيد القراءة</span>
                <div className="flex items-center gap-2">
                   <div className="w-8 h-[1px] bg-[#D1D1D1] hidden sm:block"></div>
-                  <span className="text-[12px] font-black text-[#203C71] tabular-nums min-w-[3ch] text-center" dir="ltr">{Math.round(scrollProgress)}%</span>
+                  <span className="text-[12px] font-black text-primary tabular-nums min-w-[3ch] text-center" dir="ltr">{Math.round(scrollProgress)}%</span>
                </div>
             </div>
         </div>
@@ -175,7 +174,7 @@ const ProjectDetail: React.FC<ProjectDetailProps> = ({ project, allProjects, onP
           
           <div className="flex flex-col lg:flex-row justify-between items-start lg:items-end gap-8 mb-16 text-right">
             <div className="flex-1">
-              <h1 className="reveal text-[42px] md:text-[68px] font-black text-[#203C71] tracking-tighter leading-[1.1] mb-6" style={{ transitionDelay: '200ms' }}>
+              <h1 className="reveal text-[42px] md:text-[68px] font-black text-primary tracking-tighter leading-[1.1] mb-6" style={{ transitionDelay: '200ms' }}>
                 {displayProject.title}
               </h1>
               <p className="reveal text-lg md:text-xl text-[#6B6B6B] font-medium leading-relaxed max-w-2xl" style={{ transitionDelay: '400ms' }}>
@@ -188,7 +187,7 @@ const ProjectDetail: React.FC<ProjectDetailProps> = ({ project, allProjects, onP
                 href="https://wa.me/966555218270" 
                 target="_blank" 
                 rel="noopener noreferrer" 
-                className="group relative inline-flex items-center rounded-full pr-8 pl-1.5 py-1.5 transition-all duration-700 ease-[cubic-bezier(0.23,1,0.32,1)] active:scale-95 shadow-xl overflow-hidden bg-[#203C71] text-white"
+                className="group relative inline-flex items-center rounded-full pr-8 pl-1.5 py-1.5 transition-all duration-700 ease-[cubic-bezier(0.23,1,0.32,1)] active:scale-95 shadow-xl overflow-hidden bg-primary text-white"
                 data-cursor-text="تواصل"
               >
                 <div className="relative h-7 overflow-hidden ml-5 pointer-events-none">
@@ -198,7 +197,7 @@ const ProjectDetail: React.FC<ProjectDetailProps> = ({ project, allProjects, onP
                   </div>
                 </div>
 
-                <div className="w-12 h-12 rounded-full relative overflow-hidden bg-[#EF7F17] text-[#203C71] shrink-0">
+                <div className="w-12 h-12 rounded-full relative overflow-hidden bg-secondary text-primary shrink-0">
                   <div className="absolute inset-0 flex items-center justify-center transition-transform duration-700 ease-[cubic-bezier(0.23,1,0.32,1)] group-hover:translate-x-full">
                     <MessageCircle size={22} strokeWidth={3} />
                   </div>
@@ -218,10 +217,10 @@ const ProjectDetail: React.FC<ProjectDetailProps> = ({ project, allProjects, onP
             ].map((item, idx) => (
               <div key={idx} className="bg-white rounded-[18px] p-8 md:p-10 flex flex-col items-start text-right">
                 <div className="flex items-center gap-1.5 mb-4">
-                  <span className="text-[11px] font-black text-[#EF7F17] tracking-[0.1em] uppercase">//</span>
+                  <span className="text-[11px] font-black text-secondary tracking-[0.1em] uppercase">//</span>
                   <span className="text-[11px] font-black text-[#888888] tracking-[0.1em] uppercase">{item.label}</span>
                 </div>
-                <p className="text-[24px] md:text-[28px] font-black text-[#203C71] leading-tight">
+                <p className="text-[24px] md:text-[28px] font-black text-primary leading-tight">
                   {item.value}
                 </p>
               </div>
@@ -231,7 +230,7 @@ const ProjectDetail: React.FC<ProjectDetailProps> = ({ project, allProjects, onP
           <section className="mb-24 reveal" style={{ transitionDelay: '1000ms' }}>
             <div className="rounded-[20px] overflow-hidden aspect-[16/10] lg:aspect-[16/8] relative group bg-[#e5e5e5]">
               <img src={displayProject.image} alt="Project Overview" className="w-full h-full object-cover transition-transform duration-[3000ms] group-hover:scale-105" />
-              <div className="absolute top-8 left-8 bg-[#203C71]/95 backdrop-blur px-4 py-2 rounded-lg text-[10px] font-black text-white shadow-lg border border-white/10 uppercase tracking-widest">
+              <div className="absolute top-8 left-8 bg-primary/95 backdrop-blur px-4 py-2 rounded-lg text-[10px] font-black text-white shadow-lg border border-white/10 uppercase tracking-widest">
                  بواسطة نقطة تواصل
               </div>
             </div>
@@ -240,8 +239,8 @@ const ProjectDetail: React.FC<ProjectDetailProps> = ({ project, allProjects, onP
           <section className="mb-32 grid grid-cols-1 lg:grid-cols-2 gap-16 lg:gap-32 text-right">
             <div className="space-y-8">
               <div className="reveal flex items-center gap-3" style={{ transitionDelay: '200ms' }}>
-                <span className="text-[#EF7F17] font-black text-2xl tracking-tighter">//</span>
-                <h3 className="text-[24px] md:text-[28px] font-black text-[#203C71] tracking-tight">أهداف المشروع</h3>
+                <span className="text-secondary font-black text-2xl tracking-tighter">//</span>
+                <h3 className="text-[24px] md:text-[28px] font-black text-primary tracking-tight">أهداف المشروع</h3>
               </div>
               <p className="reveal text-[18px] md:text-[20px] text-[#6B6B6B] font-semibold leading-[1.6]" style={{ transitionDelay: '500ms' }}>
                 احتاج هذا المشروع إلى حضور رقمي احترافي يعكس الخبرة والجودة العالية. عملنا في نقطة تواصل على تحليل المتطلبات بدقة وصياغة مفهوم استراتيجي يضمن التميز في سوق العمل ويوضح القيمة المضافة لشركائنا بأسلوب عصري ومبتكر.
@@ -249,8 +248,8 @@ const ProjectDetail: React.FC<ProjectDetailProps> = ({ project, allProjects, onP
             </div>
             <div className="space-y-8">
               <div className="reveal flex items-center gap-3" style={{ transitionDelay: '350ms' }}>
-                <span className="text-[#EF7F17] font-black text-2xl tracking-tighter">//</span>
-                <h3 className="text-[24px] md:text-[28px] font-black text-[#203C71] tracking-tight">النتيجة</h3>
+                <span className="text-secondary font-black text-2xl tracking-tighter">//</span>
+                <h3 className="text-[24px] md:text-[28px] font-black text-primary tracking-tight">النتيجة</h3>
               </div>
               <p className="reveal text-[18px] md:text-[20px] text-[#6B6B6B] font-semibold leading-[1.6]" style={{ transitionDelay: '500ms' }}>
                 قدمنا موقعاً إلكترونياً يركز على التحويل وبناء الثقة، مع رسائل واضحة وتصميم استراتيجي ومرئيات مصقولة تماماً. التجربة الجديدة تبرز الخدمات الأساسية، المصداقية، وقصص النجاح، مما يوجه الزوار بسلاسة من الانطباع الأول إلى التواصل المباشر.
@@ -275,11 +274,11 @@ const ProjectDetail: React.FC<ProjectDetailProps> = ({ project, allProjects, onP
           {/* New Video Showcase Section */}
           <section className="mb-32 reveal" style={{ transitionDelay: '300ms' }}>
             <div className="flex flex-col items-start gap-4 mb-12">
-              <div className="inline-flex items-center gap-2 bg-[#203C71] px-4 py-2 rounded-full shadow-lg">
-                <span className="text-[#EF7F17] font-black text-[12px] tracking-tight">//</span>
+              <div className="inline-flex items-center gap-2 bg-primary px-4 py-2 rounded-full shadow-lg">
+                <span className="text-secondary font-black text-[12px] tracking-tight">//</span>
                 <span className="text-white text-[12px] font-black tracking-widest uppercase">استعراض مرئي</span>
               </div>
-              <h2 className="text-3xl md:text-5xl font-black text-[#203C71] tracking-tight">التجربة الحية.</h2>
+              <h2 className="text-3xl md:text-5xl font-black text-primary tracking-tight">التجربة الحية.</h2>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
@@ -296,7 +295,7 @@ const ProjectDetail: React.FC<ProjectDetailProps> = ({ project, allProjects, onP
                   ></iframe>
                 </div>
                 <div className="pr-2">
-                  <h4 className="text-xl md:text-2xl font-black text-[#203C71] leading-tight group-hover:text-[#EF7F17] transition-colors duration-300">تغطية شاملة للحدث</h4>
+                  <h4 className="text-xl md:text-2xl font-black text-primary leading-tight group-hover:text-secondary transition-colors duration-300">تغطية شاملة للحدث</h4>
                 </div>
               </div>
 
@@ -312,7 +311,7 @@ const ProjectDetail: React.FC<ProjectDetailProps> = ({ project, allProjects, onP
                   ></iframe>
                 </div>
                 <div className="pr-2">
-                  <h4 className="text-xl md:text-2xl font-black text-[#203C71] leading-tight group-hover:text-[#EF7F17] transition-colors duration-300">هوية بصرية متحركة</h4>
+                  <h4 className="text-xl md:text-2xl font-black text-primary leading-tight group-hover:text-secondary transition-colors duration-300">هوية بصرية متحركة</h4>
                 </div>
               </div>
 
@@ -328,20 +327,20 @@ const ProjectDetail: React.FC<ProjectDetailProps> = ({ project, allProjects, onP
                   ></iframe>
                 </div>
                 <div className="pr-2">
-                  <h4 className="text-xl md:text-2xl font-black text-[#203C71] leading-tight group-hover:text-[#EF7F17] transition-colors duration-300">كواليس العمل الإبداعي</h4>
+                  <h4 className="text-xl md:text-2xl font-black text-primary leading-tight group-hover:text-secondary transition-colors duration-300">كواليس العمل الإبداعي</h4>
                 </div>
               </div>
             </div>
           </section>
 
           <section className="pb-20">
-            <h2 className="reveal text-5xl md:text-7xl font-black text-[#203C71] tracking-tighter mb-16 text-right" style={{ transitionDelay: '200ms' }}>مشاريع تالية.</h2>
+            <h2 className="reveal text-5xl md:text-7xl font-black text-primary tracking-tighter mb-16 text-right" style={{ transitionDelay: '200ms' }}>مشاريع تالية.</h2>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
               {nextProjects.map((work, idx) => (
                 <div 
                   key={work.id} 
                   onClick={() => handleNextProjectClick(work)}
-                  className={`reveal group relative rounded-[20px] overflow-hidden bg-[#e5e5e5] cursor-pointer shadow-sm transition-all duration-700 ${loadingProjectId === work.id ? 'scale-95 ring-4 ring-[#EF7F17]/30' : ''}`}
+                  className={`reveal group relative rounded-[20px] overflow-hidden bg-[#e5e5e5] cursor-pointer shadow-sm transition-all duration-700 ${loadingProjectId === work.id ? 'scale-95 ring-4 ring-secondary/30' : ''}`}
                   style={{ transitionDelay: `${400 + (idx * 150)}ms` }}
                   data-cursor-text="عرض المشروع"
                 >
@@ -364,14 +363,14 @@ const ProjectDetail: React.FC<ProjectDetailProps> = ({ project, allProjects, onP
 
                   <div className={`absolute inset-x-5 bottom-5 z-20 transition-all duration-700 transform ${loadingProjectId === work.id ? 'translate-y-4 opacity-0' : 'translate-y-0 opacity-100 md:translate-y-6 md:opacity-0 md:group-hover:translate-y-0 md:group-hover:opacity-100'}`}>
                     <div 
-                      className="bg-[#f0f0f0] rounded-[24px] p-5 flex items-center justify-between shadow-2xl border border-white/20"
+                      className="bg-background rounded-[24px] p-5 flex items-center justify-between shadow-2xl border border-white/20"
                       style={{ boxShadow: cardShadow }}
                     >
                       <div className="flex flex-col text-right pr-2">
-                        <h3 className="text-lg font-black text-[#203C71] leading-tight">{work.title}</h3>
+                        <h3 className="text-lg font-black text-primary leading-tight">{work.title}</h3>
                         <p className="text-[#888888] text-[11px] font-bold tracking-tight uppercase mt-0.5">{work.category}</p>
                       </div>
-                      <div className="w-12 h-12 bg-[#203C71] rounded-[16px] flex items-center justify-center text-white transition-all duration-500 hover:bg-[#EF7F17] hover:rotate-[-45deg] shrink-0 shadow-lg">
+                      <div className="w-12 h-12 bg-primary rounded-[16px] flex items-center justify-center text-white transition-all duration-500 hover:bg-secondary hover:rotate-[-45deg] shrink-0 shadow-lg">
                         <LinkIcon size={20} strokeWidth={3} />
                       </div>
                     </div>

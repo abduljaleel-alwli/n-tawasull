@@ -43,10 +43,10 @@ const Benefits: React.FC = () => {
       {/* Updated Header Structure */}
       <div className="flex flex-col lg:flex-row justify-between items-start lg:items-end mb-12 md:mb-16 lg:mb-20 gap-8 text-right">
         <div className="flex flex-col items-start gap-4 md:gap-6 w-full lg:w-auto">
-          <div className="reveal inline-flex items-center gap-2 bg-[#203C71] px-4 py-2.5 rounded-full shadow-xl" style={{ transitionDelay: '0ms' }}>
-            <span className="text-[#EF7F17] font-black text-[12px] tracking-tight">//</span>
+          <div className="reveal inline-flex items-center gap-2 bg-primary px-4 py-2.5 rounded-full shadow-xl" style={{ transitionDelay: '0ms' }}>
+            <span className="text-secondary font-black text-[12px] tracking-tight">//</span>
             <span className="text-white text-[12px] font-black tracking-widest uppercase">قيمنا الجوهرية</span>
-            <span className="text-[#EF7F17] font-black text-[12px] tracking-tight">//</span>
+            <span className="text-secondary font-black text-[12px] tracking-tight">//</span>
           </div>
           <h2 className="reveal text-3xl sm:text-4xl md:text-6xl font-black text-[#111111] leading-[1.25] md:leading-[1.2] tracking-normal" style={{ transitionDelay: '200ms' }}>
             ما نؤمن به.
@@ -71,14 +71,14 @@ const Benefits: React.FC = () => {
             }}
           >
             <div className="flex justify-between items-start">
-              <div className="text-[#203C71] group-hover:scale-110 transition-transform duration-500">
+              <div className="text-primary group-hover:scale-110 transition-transform duration-500">
                 {benefit.icon}
               </div>
               <div className="flex gap-1.5" dir="ltr">
                 {[...Array(totalDots)].map((_, i) => (
                   <div 
                     key={i} 
-                    className={`w-2 h-2 rounded-full transition-all duration-500 ${i <= idx ? 'bg-[#EF7F17]' : 'bg-[#D9D9D9]'}`}
+                    className={`w-2 h-2 rounded-full transition-all duration-500 ${i <= idx ? 'bg-secondary' : 'bg-[#D9D9D9]'}`}
                   ></div>
                 ))}
               </div>

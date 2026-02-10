@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { ArrowLeft, ChevronDown, Star } from 'lucide-react';
 
@@ -31,7 +30,7 @@ const Hero: React.FC = () => {
         href={href} 
         data-cursor-text="اضغط هنا"
         className={`group relative inline-flex items-center rounded-full pr-8 pl-1.5 py-1.5 transition-all duration-700 ease-[cubic-bezier(0.23,1,0.32,1)] active:scale-95 shadow-xl overflow-hidden
-          ${isOrange ? 'bg-[#EF7F17] text-white' : 'bg-[#203C71] text-white'}
+          ${isOrange ? 'bg-secondary text-white' : 'bg-primary text-white'}
         `}
       >
         <div className="relative h-7 overflow-hidden ml-5 pointer-events-none">
@@ -42,7 +41,7 @@ const Hero: React.FC = () => {
         </div>
 
         <div className={`w-12 h-12 rounded-full relative overflow-hidden transition-colors duration-500 shrink-0
-          ${isOrange ? 'bg-[#203C71] text-[#EF7F17]' : 'bg-[#EF7F17] text-[#203C71]'}
+          ${isOrange ? 'bg-primary text-secondary' : 'bg-secondary text-primary'}
         `}>
           <div className="absolute inset-0 flex items-center justify-center transition-transform duration-700 ease-[cubic-bezier(0.23,1,0.32,1)] group-hover:translate-x-full">
             <ArrowLeft size={24} strokeWidth={3} className="rotate-0" />
@@ -60,10 +59,10 @@ const Hero: React.FC = () => {
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-20 items-center relative pb-20">
         
         <div className="lg:col-span-7 flex flex-col items-start text-right pt-[150px] md:pt-32 z-10">
-          <div className="inline-flex items-center gap-2 bg-[#203C71] px-5 py-2.5 rounded-full mb-8 shadow-xl animate-entrance-up delay-1000 hover:scale-105 transition-transform duration-300">
-            <span className="text-[#EF7F17] font-black text-[11px]">//</span>
+          <div className="inline-flex items-center gap-2 bg-primary px-5 py-2.5 rounded-full mb-8 shadow-xl animate-entrance-up delay-1000 hover:scale-105 transition-transform duration-300">
+            <span className="text-secondary font-black text-[11px]">//</span>
             <span className="text-white text-[11px] font-black tracking-widest uppercase">نقطة تواصل - مكة المكرمة</span>
-            <span className="text-[#EF7F17] font-black text-[11px]">//</span>
+            <span className="text-secondary font-black text-[11px]">//</span>
           </div>
 
           <h1 className="text-[32px] md:text-[44px] lg:text-[56px] font-black leading-[1.3] tracking-[-0.01em] mb-8 text-balance animate-entrance-up delay-1200">
@@ -84,7 +83,7 @@ const Hero: React.FC = () => {
           <div className="flex flex-row items-center gap-5 animate-entrance-up delay-1800">
             <div className="flex -space-x-4 space-x-reverse shrink-0">
                 {[1, 2, 3, 4].map((i) => (
-                    <div key={i} className="w-12 h-12 md:w-14 md:h-14 rounded-full border-[3px] border-[#f0f0f0] overflow-hidden shadow-lg bg-gray-200 relative z-0 hover:z-10 transition-transform hover:scale-110 cursor-pointer" data-cursor-text="عملاءنا">
+                    <div key={i} className="w-12 h-12 md:w-14 md:h-14 rounded-full border-[3px] border-background overflow-hidden shadow-lg bg-gray-200 relative z-0 hover:z-10 transition-transform hover:scale-110 cursor-pointer" data-cursor-text="عملاءنا">
                         <img 
                             src={`https://i.pravatar.cc/150?u=tawasull_v${i}`} 
                             alt="User" 
@@ -94,7 +93,7 @@ const Hero: React.FC = () => {
                 ))}
             </div>
             <div className="flex flex-col items-start gap-1.5">
-                <div className="flex gap-1 text-[#EF7F17]">
+                <div className="flex gap-1 text-secondary">
                     {[1,2,3,4,5].map(i => (
                         <Star key={i} size={15} fill="currentColor" strokeWidth={0} />
                     ))}
@@ -133,7 +132,7 @@ const Hero: React.FC = () => {
       <div className="absolute bottom-8 left-0 right-0 mx-auto w-fit flex flex-col items-center gap-3 animate-entrance-up delay-2800 pointer-events-none">
           <span className="text-[10px] font-black text-[#999999] tracking-[0.2em] uppercase">اسحب للأسفل</span>
           <div className="relative w-6 h-10 rounded-full border-2 border-[#D1D1D1] flex justify-center p-1 overflow-hidden">
-             <div className="w-1 h-2 bg-[#EF7F17] rounded-full animate-scroll-indicator"></div>
+             <div className="w-1 h-2 bg-secondary rounded-full animate-scroll-indicator"></div>
           </div>
       </div>
       

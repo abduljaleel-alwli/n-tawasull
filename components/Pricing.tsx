@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Check, Plus, Info, Zap } from 'lucide-react';
 
@@ -18,10 +17,10 @@ const Pricing: React.FC = () => {
       {/* Updated Header Structure */}
       <div className="flex flex-col lg:flex-row justify-between items-start lg:items-end mb-12 md:mb-16 lg:mb-20 gap-8 text-right">
         <div className="flex flex-col items-start gap-4 md:gap-6 w-full lg:w-auto">
-          <div className="reveal inline-flex items-center gap-2 bg-[#203C71] px-4 py-2.5 rounded-full shadow-xl" style={{ transitionDelay: '0ms' }}>
-            <span className="text-[#EF7F17] font-black text-[12px] tracking-tight">//</span>
+          <div className="reveal inline-flex items-center gap-2 bg-primary px-4 py-2.5 rounded-full shadow-xl" style={{ transitionDelay: '0ms' }}>
+            <span className="text-secondary font-black text-[12px] tracking-tight">//</span>
             <span className="text-white text-[12px] font-black tracking-widest uppercase">الأسعار</span>
-            <span className="text-[#EF7F17] font-black text-[12px] tracking-tight">//</span>
+            <span className="text-secondary font-black text-[12px] tracking-tight">//</span>
           </div>
           <h2 className="reveal text-3xl sm:text-4xl md:text-6xl font-black text-[#111111] leading-[1.25] md:leading-[1.2] tracking-normal" style={{ transitionDelay: '200ms' }}>
             باقات مرنة.
@@ -57,12 +56,12 @@ const Pricing: React.FC = () => {
               }}
             >
               <div className="flex justify-between items-center">
-                <div className="w-12 h-12 rounded-full border border-gray-100 flex items-center justify-center text-[#203C71]">
+                <div className="w-12 h-12 rounded-full border border-gray-100 flex items-center justify-center text-primary">
                   {item.icon}
                 </div>
                 <div className="flex gap-1.5" dir="ltr">
                   {[...Array(3)].map((_, dot) => (
-                    <div key={dot} className={`w-1.5 h-1.5 rounded-full ${dot === i ? 'bg-[#EF7F17]' : 'bg-gray-200'}`}></div>
+                    <div key={dot} className={`w-1.5 h-1.5 rounded-full ${dot === i ? 'bg-secondary' : 'bg-gray-200'}`}></div>
                   ))}
                 </div>
               </div>
@@ -85,10 +84,10 @@ const Pricing: React.FC = () => {
         >
           <div className="flex justify-between items-start mb-10">
             <div className="p-4 bg-[#f8f8f8] rounded-2xl">
-                <Zap size={28} className="text-[#203C71]" strokeWidth={2.5} />
+                <Zap size={28} className="text-primary" strokeWidth={2.5} />
             </div>
             <div className="text-right flex items-baseline gap-1" dir="ltr">
-                <span className="text-5xl font-black text-[#203C71] tracking-tighter">${(basePriceRetainer + (hasDevRetainer ? devAddonRetainer : 0)) / 1000}K</span>
+                <span className="text-5xl font-black text-primary tracking-tighter">${(basePriceRetainer + (hasDevRetainer ? devAddonRetainer : 0)) / 1000}K</span>
                 <span className="text-xl font-bold text-[#999999]">/ش</span>
             </div>
           </div>
@@ -100,12 +99,12 @@ const Pricing: React.FC = () => {
           
           <div className="bg-[#f8f8f8] rounded-2xl p-4 flex justify-between items-center border border-gray-100 mb-10">
             <div className="flex items-center gap-2">
-                <Plus size={16} className="text-[#203C71]" />
-                <span className="text-xs font-black uppercase tracking-wider text-[#203C71]">تطوير + $1000</span>
+                <Plus size={16} className="text-primary" />
+                <span className="text-xs font-black uppercase tracking-wider text-primary">تطوير + $1000</span>
             </div>
             <button 
                 onClick={() => setHasDevRetainer(!hasDevRetainer)}
-                className={`w-12 h-6 rounded-full p-1 transition-all duration-300 relative ${hasDevRetainer ? 'bg-[#EF7F17]' : 'bg-[#D1D1D1]'}`}
+                className={`w-12 h-6 rounded-full p-1 transition-all duration-300 relative ${hasDevRetainer ? 'bg-secondary' : 'bg-[#D1D1D1]'}`}
                 data-cursor-text="تغيير"
             >
                 <div className={`w-4 h-4 bg-white rounded-full shadow-sm transition-transform duration-300 ${hasDevRetainer ? '-translate-x-6' : 'translate-x-0'}`}></div>
@@ -115,20 +114,20 @@ const Pricing: React.FC = () => {
           <ul className="space-y-4 mb-12">
             {['طلبات غير محدودة', 'طلب واحد في كل مرة', 'رسوم شهرية ثابتة', 'تواصل غير متزامن', 'نطاق عمل مرن', 'إيقاف الاشتراك مؤقتاً'].map((feature) => (
                 <li key={feature} className="flex items-center gap-3 text-[15px] font-black text-[#444444]">
-                    <div className="bg-[#EF7F17]/10 p-1 rounded-full"><Check size={14} className="text-[#EF7F17]" strokeWidth={4} /></div>
+                    <div className="bg-secondary/10 p-1 rounded-full"><Check size={14} className="text-secondary" strokeWidth={4} /></div>
                     {feature}
                 </li>
             ))}
           </ul>
 
-          <button className="w-full bg-[#203C71] text-white py-6 rounded-3xl font-black text-lg hover:bg-[#EF7F17] hover:text-[#203C71] transition-all duration-500 mt-auto" data-cursor-text="اشترك">
+          <button className="w-full bg-primary text-white py-6 rounded-3xl font-black text-lg hover:bg-secondary hover:text-primary transition-all duration-500 mt-auto" data-cursor-text="اشترك">
             اشترك الآن
           </button>
         </div>
 
         {/* Column 3: Project Plan Card */}
         <div 
-          className="bg-[#203C71] rounded-[40px] p-10 flex flex-col relative overflow-hidden transition-all duration-700 hover:scale-[1.02] shadow-2xl md:col-span-2 lg:col-span-1 opacity-0 translate-y-8 [.reveal-visible_&]:opacity-100 [.reveal-visible_&]:translate-y-0"
+          className="bg-primary rounded-[40px] p-10 flex flex-col relative overflow-hidden transition-all duration-700 hover:scale-[1.02] shadow-2xl md:col-span-2 lg:col-span-1 opacity-0 translate-y-8 [.reveal-visible_&]:opacity-100 [.reveal-visible_&]:translate-y-0"
           style={{ 
             transitionDelay: '900ms',
             transitionTimingFunction: 'cubic-bezier(0.16, 1, 0.3, 1)'
@@ -164,7 +163,7 @@ const Pricing: React.FC = () => {
                 className={`w-12 h-6 rounded-full p-1 transition-all duration-300 relative ${hasDevProject ? 'bg-white' : 'bg-white/20'}`}
                 data-cursor-text="تغيير"
             >
-                <div className={`w-4 h-4 rounded-full shadow-sm transition-transform duration-300 ${hasDevProject ? '-translate-x-6 bg-[#203C71]' : 'translate-x-0 bg-white'}`}></div>
+                <div className={`w-4 h-4 rounded-full shadow-sm transition-transform duration-300 ${hasDevProject ? '-translate-x-6 bg-primary' : 'translate-x-0 bg-white'}`}></div>
             </button>
           </div>
 
@@ -177,7 +176,7 @@ const Pricing: React.FC = () => {
             ))}
           </ul>
 
-          <button className="w-full bg-white text-[#203C71] py-6 rounded-3xl font-black text-lg hover:bg-[#EF7F17] transition-all duration-500 mt-auto" data-cursor-text="ابدأ">
+          <button className="w-full bg-white text-primary py-6 rounded-3xl font-black text-lg hover:bg-secondary transition-all duration-500 mt-auto" data-cursor-text="ابدأ">
             ابدأ مشروعك
           </button>
         </div>

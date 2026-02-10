@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { ArrowLeft, Twitter, Linkedin, Instagram, Globe, Shield, FileText, Mail, CheckCircle2 } from 'lucide-react';
 
@@ -8,10 +7,10 @@ const RollingLink: React.FC<{ text: string; href: string; icon?: React.ReactNode
       <div className="relative h-8 overflow-hidden pointer-events-none">
         <div className="flex flex-col transition-transform duration-700 ease-[cubic-bezier(0.23,1,0.32,1)] group-hover:-translate-y-1/2">
           <span className="h-8 text-[16px] sm:text-[18px] font-black text-[#A1A1A1] group-hover:text-white leading-8 whitespace-nowrap flex items-center gap-3 transition-colors duration-300 justify-start">
-            {icon && <span className="opacity-70 group-hover:opacity-100 group-hover:text-[#EF7F17] transition-all shrink-0">{icon}</span>}
+            {icon && <span className="opacity-70 group-hover:opacity-100 group-hover:text-secondary transition-all shrink-0">{icon}</span>}
             {text}
           </span>
-          <span className="h-8 text-[16px] sm:text-[18px] font-black text-[#EF7F17] leading-8 whitespace-nowrap flex items-center gap-3 justify-start">
+          <span className="h-8 text-[16px] sm:text-[18px] font-black text-secondary leading-8 whitespace-nowrap flex items-center gap-3 justify-start">
             {icon && <span className="shrink-0">{icon}</span>}
             {text}
           </span>
@@ -64,7 +63,7 @@ const Footer: React.FC = () => {
                   </div>
                 ) : (
                   <form onSubmit={handleNewsletterSubmit} className="relative group">
-                    <div className="flex items-center bg-white/5 border border-white/10 rounded-2xl sm:rounded-full p-1.5 focus-within:border-[#EF7F17] focus-within:bg-white/10 transition-all duration-500 flex-col sm:flex-row gap-2 sm:gap-0">
+                    <div className="flex items-center bg-white/5 border border-white/10 rounded-2xl sm:rounded-full p-1.5 focus-within:border-secondary focus-within:bg-white/10 transition-all duration-500 flex-col sm:flex-row gap-2 sm:gap-0">
                       <input 
                         type="email" 
                         required
@@ -77,7 +76,7 @@ const Footer: React.FC = () => {
                       <button 
                         type="submit"
                         disabled={isSubmitting}
-                        className="group relative flex items-center justify-between sm:justify-center bg-[#EF7F17] text-[#203C71] rounded-xl sm:rounded-full pr-5 pl-1.5 py-1.5 transition-all duration-700 ease-[cubic-bezier(0.23,1,0.32,1)] active:scale-95 disabled:opacity-50 shrink-0 overflow-hidden w-full sm:w-auto"
+                        className="group relative flex items-center justify-between sm:justify-center bg-secondary text-primary rounded-xl sm:rounded-full pr-5 pl-1.5 py-1.5 transition-all duration-700 ease-[cubic-bezier(0.23,1,0.32,1)] active:scale-95 disabled:opacity-50 shrink-0 overflow-hidden w-full sm:w-auto"
                         data-cursor-text="اشترك"
                       >
                         <div className="relative h-5 overflow-hidden ml-3 pointer-events-none">
@@ -87,9 +86,9 @@ const Footer: React.FC = () => {
                           </div>
                         </div>
 
-                        <div className="w-9 h-9 rounded-lg sm:w-9 sm:h-9 sm:rounded-full relative overflow-hidden bg-[#203C71] text-[#EF7F17] shrink-0 flex items-center justify-center">
+                        <div className="w-9 h-9 rounded-lg sm:w-9 sm:h-9 sm:rounded-full relative overflow-hidden bg-primary text-secondary shrink-0 flex items-center justify-center">
                           {isSubmitting ? (
-                            <div className="w-4 h-4 border-2 border-[#EF7F17]/30 border-t-[#EF7F17] rounded-full animate-spin"></div>
+                            <div className="w-4 h-4 border-2 border-secondary/30 border-t-secondary rounded-full animate-spin"></div>
                           ) : (
                             <>
                               <div className="absolute inset-0 flex items-center justify-center transition-transform duration-700 ease-[cubic-bezier(0.23,1,0.32,1)] group-hover:translate-x-full">
@@ -121,8 +120,8 @@ const Footer: React.FC = () => {
               
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                  <a href="mailto:tawasull.sa@gmail.com" className="flex items-center gap-3 text-white group cursor-pointer bg-white/5 hover:bg-white/10 p-4 rounded-2xl transition-all duration-500" data-cursor-text="راسلنا">
-                    <div className="w-10 h-10 rounded-full bg-[#EF7F17]/10 flex items-center justify-center group-hover:bg-[#EF7F17] transition-all duration-500 shrink-0">
-                      <Mail size={16} className="text-[#EF7F17] group-hover:text-[#203C71]" />
+                    <div className="w-10 h-10 rounded-full bg-secondary/10 flex items-center justify-center group-hover:bg-secondary transition-all duration-500 shrink-0">
+                      <Mail size={16} className="text-secondary group-hover:text-primary" />
                     </div>
                     <div className="flex flex-col items-start overflow-hidden">
                        <span className="text-[10px] font-black text-white/40 uppercase tracking-tighter">البريد الإلكتروني</span>
@@ -130,8 +129,8 @@ const Footer: React.FC = () => {
                     </div>
                  </a>
                  <div className="flex items-center gap-3 text-white group cursor-default bg-white/5 hover:bg-white/10 p-4 rounded-2xl transition-all duration-500">
-                    <div className="w-10 h-10 rounded-full bg-[#EF7F17]/10 flex items-center justify-center group-hover:bg-[#EF7F17] transition-all duration-500 shrink-0">
-                      <Globe size={16} className="text-[#EF7F17] group-hover:text-[#203C71]" />
+                    <div className="w-10 h-10 rounded-full bg-secondary/10 flex items-center justify-center group-hover:bg-secondary transition-all duration-500 shrink-0">
+                      <Globe size={16} className="text-secondary group-hover:text-primary" />
                     </div>
                     <div className="flex flex-col items-start">
                        <span className="text-[10px] font-black text-white/40 uppercase tracking-tighter">الموقع</span>
@@ -145,13 +144,12 @@ const Footer: React.FC = () => {
           {/* Links Columns */}
           <div className="lg:col-span-7 grid grid-cols-2 sm:grid-cols-3 gap-10 sm:gap-12 text-right">
             <div className="space-y-8">
-              <h5 className="text-[11px] font-black uppercase tracking-[0.2em] text-[#EF7F17] border-b border-white/5 pb-4">/ التنقل</h5>
+              <h5 className="text-[11px] font-black uppercase tracking-[0.2em] text-secondary border-b border-white/5 pb-4">/ التنقل</h5>
               <ul className="space-y-3 flex flex-col items-start">
                 {[
                   { name: 'الخدمات', id: 'services' },
                   { name: 'قيمنا', id: 'benefits' },
                   { name: 'أعمالنا', id: 'work' },
-                  { name: 'الأسعار', id: 'pricing' },
                   { name: 'اتصل بنا', id: 'contact' }
                 ].map((item) => (
                   <li key={item.id} className="w-full">
@@ -162,7 +160,7 @@ const Footer: React.FC = () => {
             </div>
 
             <div className="space-y-8">
-              <h5 className="text-[11px] font-black uppercase tracking-[0.2em] text-[#EF7F17] border-b border-white/5 pb-4">/ المصادر</h5>
+              <h5 className="text-[11px] font-black uppercase tracking-[0.2em] text-secondary border-b border-white/5 pb-4">/ المصادر</h5>
               <ul className="space-y-3 flex flex-col items-start">
                 {[
                   { name: 'سياسة الخصوصية', id: 'privacy', icon: <Shield size={16} /> },
@@ -177,7 +175,7 @@ const Footer: React.FC = () => {
             </div>
 
             <div className="space-y-8 col-span-2 sm:col-span-1">
-              <h5 className="text-[11px] font-black uppercase tracking-[0.2em] text-[#EF7F17] border-b border-white/5 pb-4">/ التواصل</h5>
+              <h5 className="text-[11px] font-black uppercase tracking-[0.2em] text-secondary border-b border-white/5 pb-4">/ التواصل</h5>
               <ul className="space-y-3 flex flex-col items-start">
                 {[
                   { name: 'إكس / تويتر', id: 'x', icon: <Twitter size={16} /> },
@@ -199,7 +197,7 @@ const Footer: React.FC = () => {
             <div className="flex items-center gap-3 text-[#A1A1A1] text-[14px] font-bold">
                <span className="opacity-50">© 2025 نقطة تواصل.</span>
                <div className="w-[1px] h-4 bg-white/10 hidden md:block"></div>
-               <span className="text-[#EF7F17]/80">صنع بشغف بواسطة Shamll tech</span>
+               <span className="text-secondary/80">صنع بشغف بواسطة Shamll tech</span>
             </div>
             <div className="text-[#64748b] text-[12px] font-bold uppercase tracking-widest hidden lg:block">
                المملكة العربية السعودية - مكة المكرمة

@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef } from 'react';
 import { ChevronLeft } from 'lucide-react';
 
@@ -36,7 +35,6 @@ const Navbar: React.FC = () => {
     { name: 'خدماتنا', href: '#services' },
     { name: 'قيمنا', href: '#benefits' },
     { name: 'أعمالنا', href: '#work' },
-    { name: 'الأسعار', href: '#pricing' },
     { name: 'التقييمات', href: '#reviews' },
     { name: 'الأسئلة', href: '#faqs' },
     { name: 'اتصل بنا', href: '#contact' },
@@ -61,13 +59,13 @@ const Navbar: React.FC = () => {
           <div className="flex items-center gap-3">
             <a 
               href="#contact" 
-              className="px-5 py-2.5 bg-white text-[#203C71] border border-gray-100 rounded-full text-sm font-black hover:bg-gray-50 transition-all duration-300 hidden sm:block"
+              className="px-5 py-2.5 bg-white text-primary border border-gray-100 rounded-full text-sm font-black hover:bg-gray-50 transition-all duration-300 hidden sm:block"
             >
               ابدأ مشروعك
             </a>
             <button 
               onClick={handleMenuToggle}
-              className="group flex items-center gap-4 bg-[#203C71] text-white px-6 py-2.5 rounded-full text-sm font-black transition-all duration-500 active:scale-95 shadow-lg hover:shadow-xl min-w-[115px] justify-center"
+              className="group flex items-center gap-4 bg-primary text-white px-6 py-2.5 rounded-full text-sm font-black transition-all duration-500 active:scale-95 shadow-lg hover:shadow-xl min-w-[115px] justify-center"
             >
               <span className="relative h-5 overflow-hidden flex items-center">
                 <span className={`transition-all duration-500 ease-[cubic-bezier(0.23,1,0.32,1)] ${isMenuOpen ? '-translate-y-full opacity-0' : 'translate-y-0 opacity-100'}`}>
@@ -85,7 +83,7 @@ const Navbar: React.FC = () => {
                 />
                 
                 <span 
-                  className={`absolute h-[2.5px] bg-[#EF7F17] rounded-full transition-all duration-500 ease-[cubic-bezier(0.34,1.56,0.64,1)] 
+                  className={`absolute h-[2.5px] bg-secondary rounded-full transition-all duration-500 ease-[cubic-bezier(0.34,1.56,0.64,1)] 
                   ${isMenuOpen ? 'w-0 opacity-0 scale-0' : 'w-2 top-1/2 -translate-y-1/2 right-0'}`}
                 />
                 
@@ -107,7 +105,7 @@ const Navbar: React.FC = () => {
         >
           <div className="flex flex-col md:flex-row gap-1 rounded-[15px] md:overflow-hidden overflow-visible" dir="rtl">
 
-            <div className="w-full md:w-[44%] bg-[#203C71] rounded-[10px] p-2 md:p-7 flex flex-col justify-center order-1 shrink-0 overflow-hidden">
+            <div className="w-full md:w-[44%] bg-primary rounded-[10px] p-2 md:p-7 flex flex-col justify-center order-1 shrink-0 overflow-hidden">
               <div className="space-y-0 text-right">
                 {navLinks.map((link, idx) => (
                   <div key={link.name} className={`${idx !== navLinks.length - 1 ? 'border-b border-white/10' : ''}`}>
@@ -139,7 +137,7 @@ const Navbar: React.FC = () => {
                   <button
                     key={idx}
                     onClick={() => setCurrentSlide(idx)}
-                    className={`w-1 h-1 md:w-1.5 md:h-1.5 rounded-full transition-all duration-500 ${currentSlide === idx ? 'bg-[#EF7F17] w-2.5 md:w-3.5' : 'bg-gray-300'}`}
+                    className={`w-1 h-1 md:w-1.5 md:h-1.5 rounded-full transition-all duration-500 ${currentSlide === idx ? 'bg-secondary w-2.5 md:w-3.5' : 'bg-gray-300'}`}
                     
                   ></button>
                 ))}
