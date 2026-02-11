@@ -1,9 +1,11 @@
+
 import { Link as LinkIcon, Layers, Plus, Loader2 } from 'lucide-react';
 import React, { useState, useMemo, useEffect } from 'react';
+import { ProjectItem } from '../utils/api';
 
 interface SelectedWorkProps {
-  projects: any[];
-  onProjectClick?: (project: any) => void;
+  projects: ProjectItem[];
+  onProjectClick?: (project: ProjectItem) => void;
 }
 
 const SelectedWork: React.FC<SelectedWorkProps> = ({ projects, onProjectClick }) => {
@@ -19,9 +21,11 @@ const SelectedWork: React.FC<SelectedWorkProps> = ({ projects, onProjectClick })
 
   const categories = useMemo(() => {
     const cats = ['الكل'];
-    projects.forEach(p => {
-      if (!cats.includes(p.category)) cats.push(p.category);
-    });
+    if (projects && projects.length > 0) {
+      projects.forEach(p => {
+        if (p.category && !cats.includes(p.category)) cats.push(p.category);
+      });
+    }
     return cats;
   }, [projects]);
 
@@ -96,9 +100,10 @@ const SelectedWork: React.FC<SelectedWorkProps> = ({ projects, onProjectClick })
           >
             <div className="overflow-hidden relative w-full aspect-[3.7/4]">
               <img 
-                src={work.image} 
+                src={work.main_image} 
                 alt={work.title} 
-                className="w-full h-full object-cover transition-all duration-[1500ms] ease-[cubic-bezier(0.16,1,0.3,1)] scale-105 group-hover:scale-100 md:group-hover:blur-[4px]" 
+                className="w-full h-full object-cover transition-all duration-[1500ms] ease-[cubic-bezier(0.16,1,0.3,1)] scale-105 group-hover:scale-100 md:group-hover:blur-[4px]"
+                loading="lazy"
               />
               <div className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-transparent opacity-60 md:opacity-0 md:group-hover:opacity-100 transition-opacity duration-700"></div>
             </div>
@@ -119,9 +124,14 @@ const SelectedWork: React.FC<SelectedWorkProps> = ({ projects, onProjectClick })
             </div>
           </div>
         ))}
-        {filteredProjects.length === 0 && (
+        {projects.length > 0 && filteredProjects.length === 0 && (
           <div className="col-span-full py-20 text-center">
             <p className="text-[#999999] font-bold text-lg italic">لا توجد مشاريع في هذه الفئة حالياً...</p>
+          </div>
+        )}
+         {projects.length === 0 && (
+          <div className="col-span-full py-32 flex justify-center">
+             <Loader2 size={32} className="text-primary animate-spin" />
           </div>
         )}
       </div>

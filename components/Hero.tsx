@@ -2,6 +2,48 @@ import React from 'react';
 import { ArrowLeft, ChevronDown, Star } from 'lucide-react';
 import { useSettings } from '../context/SettingsContext';
 
+interface AnimatedButtonProps {
+  text: string;
+  href: string;
+  variant?: 'orange' | 'black';
+}
+
+const AnimatedButton: React.FC<AnimatedButtonProps> = ({ 
+  text, 
+  href, 
+  variant = 'orange' 
+}) => {
+  const isOrange = variant === 'orange';
+  
+  return (
+    <a 
+      href={href} 
+      data-cursor-text="اضغط هنا"
+      className={`group relative inline-flex items-center rounded-full pr-8 pl-1.5 py-1.5 transition-all duration-700 ease-[cubic-bezier(0.23,1,0.32,1)] active:scale-95 shadow-xl overflow-hidden
+        ${isOrange ? 'bg-secondary text-white' : 'bg-primary text-white'}
+      `}
+    >
+      <div className="relative h-7 overflow-hidden ml-5 pointer-events-none">
+        <div className="flex flex-col transition-transform duration-700 ease-[cubic-bezier(0.23,1,0.32,1)] group-hover:-translate-y-1/2">
+          <span className="h-7 font-black leading-7 whitespace-nowrap flex items-center">{text}</span>
+          <span className="h-7 font-black leading-7 whitespace-nowrap flex items-center">{text}</span>
+        </div>
+      </div>
+
+      <div className={`w-12 h-12 rounded-full relative overflow-hidden transition-colors duration-500 shrink-0
+        ${isOrange ? 'bg-primary text-secondary' : 'bg-secondary text-primary'}
+      `}>
+        <div className="absolute inset-0 flex items-center justify-center transition-transform duration-700 ease-[cubic-bezier(0.23,1,0.32,1)] group-hover:translate-x-full">
+          <ArrowLeft size={24} strokeWidth={3} className="rotate-0" />
+        </div>
+        <div className="absolute inset-0 flex items-center justify-center -translate-x-full transition-transform duration-700 ease-[cubic-bezier(0.23,1,0.32,1)] group-hover:translate-x-0">
+          <ArrowLeft size={24} strokeWidth={3} className="rotate-0" />
+        </div>
+      </div>
+    </a>
+  );
+};
+
 const Hero: React.FC = () => {
   const { getSetting } = useSettings();
   
@@ -37,46 +79,6 @@ const Hero: React.FC = () => {
   const midPoint = Math.ceil(processedImages.length / 2);
   const column1 = processedImages.slice(0, midPoint);
   const column2 = processedImages.slice(midPoint);
-
-  const AnimatedButton = ({ 
-    text, 
-    href, 
-    variant = 'orange' 
-  }: { 
-    text: string, 
-    href: string, 
-    variant?: 'orange' | 'black' 
-  }) => {
-    const isOrange = variant === 'orange';
-    
-    return (
-      <a 
-        href={href} 
-        data-cursor-text="اضغط هنا"
-        className={`group relative inline-flex items-center rounded-full pr-8 pl-1.5 py-1.5 transition-all duration-700 ease-[cubic-bezier(0.23,1,0.32,1)] active:scale-95 shadow-xl overflow-hidden
-          ${isOrange ? 'bg-secondary text-white' : 'bg-primary text-white'}
-        `}
-      >
-        <div className="relative h-7 overflow-hidden ml-5 pointer-events-none">
-          <div className="flex flex-col transition-transform duration-700 ease-[cubic-bezier(0.23,1,0.32,1)] group-hover:-translate-y-1/2">
-            <span className="h-7 font-black leading-7 whitespace-nowrap flex items-center">{text}</span>
-            <span className="h-7 font-black leading-7 whitespace-nowrap flex items-center">{text}</span>
-          </div>
-        </div>
-
-        <div className={`w-12 h-12 rounded-full relative overflow-hidden transition-colors duration-500 shrink-0
-          ${isOrange ? 'bg-primary text-secondary' : 'bg-secondary text-primary'}
-        `}>
-          <div className="absolute inset-0 flex items-center justify-center transition-transform duration-700 ease-[cubic-bezier(0.23,1,0.32,1)] group-hover:translate-x-full">
-            <ArrowLeft size={24} strokeWidth={3} className="rotate-0" />
-          </div>
-          <div className="absolute inset-0 flex items-center justify-center -translate-x-full transition-transform duration-700 ease-[cubic-bezier(0.23,1,0.32,1)] group-hover:translate-x-0">
-            <ArrowLeft size={24} strokeWidth={3} className="rotate-0" />
-          </div>
-        </div>
-      </a>
-    );
-  };
 
   return (
     <div className="relative pb-16 px-6 md:px-12 max-w-[1350px] mx-auto min-h-screen flex flex-col justify-center" dir="rtl">

@@ -1,3 +1,4 @@
+
 export interface Setting {
   key: string;
   value: string;
@@ -11,7 +12,47 @@ export interface ApiResponse {
   data: Setting[];
 }
 
+export interface ServiceItem {
+  id: number;
+  title: string;
+  description: string;
+  category: string;
+  category_id?: number;
+  tags: string[];
+  main_image: string;
+  images: string[];
+  display_order?: number;
+}
+
+export interface ProjectFeature {
+  title: string;
+  description: string;
+}
+
+export interface ProjectVideo {
+  type: string;
+  provider: string;
+  title: string;
+  url: string | null;
+  iframe: string | null;
+}
+
+export interface ProjectItem {
+  id: number;
+  title: string;
+  description: string;
+  category: string;
+  category_id?: number;
+  main_image: string;
+  images?: string[];
+  videos?: ProjectVideo[];
+  features?: ProjectFeature[]; 
+  content?: string;
+  display_order?: number;
+}
+
 export const STORAGE_BASE_URL = 'https://n-tawasull.sa/storage';
+export const API_BASE_URL = 'https://n-tawasull.sa/api';
 
 /**
  * Helper to construct the full URL for files/images from the API.
@@ -29,16 +70,13 @@ export const getFileUrl = (path: string | null | undefined, fallback: string = '
 
 /**
  * Fetches settings from the API.
- * Implements robust error handling to manage CORS or network failures.
- * If the fetch fails, it returns an empty object so the app can use local defaults.
  */
 export const fetchSettings = async (): Promise<Record<string, any>> => {
-  const SETTINGS_URL = 'https://n-tawasull.sa/api/settings';
+  const SETTINGS_URL = `${API_BASE_URL}/settings`;
   
   try {
-    // Add a controller to handle timeouts
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 5000); // 5s timeout
+    const timeoutId = setTimeout(() => controller.abort(), 5000); 
 
     const response = await fetch(SETTINGS_URL, {
       method: 'GET',
@@ -51,7 +89,6 @@ export const fetchSettings = async (): Promise<Record<string, any>> => {
     clearTimeout(timeoutId);
 
     if (!response.ok) {
-        // If server returns an error code, we log it quietly and move to fallbacks
         console.warn(`Settings API returned status: ${response.status}`);
         return {};
     }
@@ -63,7 +100,6 @@ export const fetchSettings = async (): Promise<Record<string, any>> => {
         json.data.forEach(item => {
             let parsedValue: any = item.value;
 
-            // Parse JSON values if the type suggests it or if it looks like a JSON string
             if (item.type === 'json' || (typeof item.value === 'string' && (item.value.trim().startsWith('[') || item.value.trim().startsWith('{')))) {
                 try {
                     parsedValue = typeof item.value === 'string' ? JSON.parse(item.value) : item.value;
@@ -82,9 +118,171 @@ export const fetchSettings = async (): Promise<Record<string, any>> => {
 
     return settings;
   } catch (error) {
-    // We log a warning instead of an error to indicate a handled fallback
-    // This usually happens due to CORS or the API being offline.
-    console.warn('Settings fetch failed. Using local fallback data. Reason:', error instanceof Error ? error.message : 'Unknown network error');
+    console.warn('Settings fetch failed. Using local fallback data.');
     return {};
+  }
+};
+
+/**
+ * Fetches services from the API.
+ */
+export const fetchServices = async (): Promise<ServiceItem[]> => {
+  const SERVICES_URL = `${API_BASE_URL}/services`;
+
+  try {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 8000); // 8s timeout
+
+    const response = await fetch(SERVICES_URL, {
+      method: 'GET',
+      signal: controller.signal,
+      headers: { 'Accept': 'application/json' },
+    });
+
+    clearTimeout(timeoutId);
+
+    if (!response.ok) return [];
+
+    const json = await response.json();
+    const dataArray = Array.isArray(json.data) ? json.data : (Array.isArray(json) ? json : []);
+
+    return dataArray.map((item: any) => {
+        let parsedTags: string[] = [];
+        if (Array.isArray(item.tags)) {
+            parsedTags = item.tags;
+        } else if (typeof item.tags === 'string') {
+            try { parsedTags = JSON.parse(item.tags); } catch { parsedTags = item.tags.split(',').map((t: string) => t.trim()); }
+        }
+
+        let parsedImages: string[] = [];
+        if (Array.isArray(item.images)) {
+             parsedImages = item.images.map((img: string) => getFileUrl(img));
+        }
+
+        return {
+            id: item.id,
+            title: item.title,
+            description: item.description,
+            category: item.category || 'عام',
+            category_id: item.category_id,
+            tags: parsedTags,
+            main_image: getFileUrl(item.main_image),
+            images: parsedImages.length > 0 ? parsedImages : [getFileUrl(item.main_image)],
+            display_order: item.display_order
+        };
+    });
+  } catch (error) {
+    console.warn('Services fetch failed', error);
+    return [];
+  }
+};
+
+/**
+ * Fetches all projects from the API.
+ */
+export const fetchProjects = async (): Promise<ProjectItem[]> => {
+  const PROJECTS_URL = `${API_BASE_URL}/projects`;
+
+  try {
+    const response = await fetch(PROJECTS_URL, {
+      headers: { 'Accept': 'application/json' }
+    });
+    
+    if (!response.ok) return [];
+    
+    const json = await response.json();
+    const dataArray = Array.isArray(json.data) ? json.data : (Array.isArray(json) ? json : []);
+
+    return dataArray.map((item: any) => ({
+      id: item.id,
+      title: item.title,
+      description: item.description,
+      category: item.category || 'عام',
+      category_id: item.category_id,
+      main_image: getFileUrl(item.main_image),
+      display_order: item.display_order
+    }));
+
+  } catch (error) {
+    console.warn('Projects fetch failed', error);
+    return [];
+  }
+};
+
+/**
+ * Fetches a single project detail by ID.
+ */
+export const fetchProjectById = async (id: number): Promise<ProjectItem | null> => {
+  const PROJECT_URL = `${API_BASE_URL}/projects/${id}`;
+
+  try {
+    const response = await fetch(PROJECT_URL, {
+      headers: { 'Accept': 'application/json' }
+    });
+
+    if (!response.ok) return null;
+
+    const json = await response.json();
+    const item = json.data || json;
+
+    // Parse Helpers
+    const parseList = (val: any) => {
+      if (Array.isArray(val)) return val;
+      if (typeof val === 'string') {
+        try { return JSON.parse(val); } catch { return []; }
+      }
+      return [];
+    };
+
+    const imagesRaw = parseList(item.images);
+    const images = imagesRaw.map((img: any) => {
+        const path = typeof img === 'string' ? img : (img?.url || img?.path || '');
+        return getFileUrl(path);
+    }).filter((url: string) => url !== '');
+
+    // Prepend main image to images list if not present
+    const mainImgUrl = getFileUrl(item.main_image);
+    if (!images.includes(mainImgUrl) && mainImgUrl) {
+      images.unshift(mainImgUrl);
+    }
+
+    // features
+    let features: ProjectFeature[] = [];
+    if (Array.isArray(item.features)) {
+        features = item.features.map((f: any) => ({
+            title: f.title || '',
+            description: f.description || ''
+        }));
+    }
+
+    // videos
+    let videos: ProjectVideo[] = [];
+    if (Array.isArray(item.videos)) {
+        videos = item.videos.map((v: any) => ({
+            type: v.type || 'url',
+            provider: v.provider || 'other',
+            title: v.title || '',
+            url: v.url || null,
+            iframe: v.iframe || null
+        }));
+    }
+
+    return {
+      id: item.id,
+      title: item.title,
+      description: item.description,
+      category: item.category || 'عام',
+      category_id: item.category_id,
+      main_image: getFileUrl(item.main_image),
+      content: item.content,
+      images: images,
+      videos: videos,
+      features: features,
+      display_order: item.display_order
+    };
+
+  } catch (error) {
+    console.warn(`Project detail fetch failed for ID ${id}`, error);
+    return null;
   }
 };

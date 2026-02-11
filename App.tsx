@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import Navbar from './components/Navbar';
 import Hero from './components/Hero';
@@ -11,20 +12,12 @@ import Contact from './components/Contact';
 import Footer from './components/Footer';
 import ProjectDetail from './components/ProjectDetail';
 import { useSettings } from './context/SettingsContext';
-import { getFileUrl } from './utils/api';
-
-const initialWorkItems = [
-  { id: 1, title: "هوية بصرية لشركة تقنية", category: "تصميم وإبداع", image: "https://images.unsplash.com/photo-1572044162444-ad60f128bdea?auto=format&fit=crop&q=80&w=1200" },
-  { id: 2, title: "حملة تسويقية لمطعم فاخر", category: "إدارة حملات ممولة", image: "https://images.unsplash.com/photo-1555396273-367ea4eb4db5?auto=format&fit=crop&q=80&w=1200" },
-  { id: 3, title: "تطوير متجر سلة متكامل", category: "حلول رقمية", image: "https://images.unsplash.com/photo-1556742044-3c52d6e88c62?auto=format&fit=crop&q=80&w=1200" },
-  { id: 4, title: "تحسين SEO لشركة عقارية", category: "محركات البحث", image: "https://images.unsplash.com/photo-1460925895917-afdab827c52f?auto=format&fit=crop&q=80&w=1200" },
-  { id: 5, title: "إنتاج بودكاست احترافي", category: "تصوير وإخراج", image: "https://images.unsplash.com/photo-1590602847861-f357a9332bbc?auto=format&fit=crop&q=80&w=1200" },
-  { id: 6, title: "إدارة سوشيال ميديا", category: "نمو وتفاعل", image: "https://images.unsplash.com/photo-1611162617263-4ec3060a058e?auto=format&fit=crop&q=80&w=1200" },
-];
+import { getFileUrl, fetchProjects, ProjectItem } from './utils/api';
 
 const App: React.FC = () => {
   const [selectedProject, setSelectedProject] = useState<any | null>(null);
   const [appState, setAppState] = useState<'home' | 'to-detail' | 'detail' | 'to-home'>('home');
+  const [workItems, setWorkItems] = useState<ProjectItem[]>([]);
   const { getSetting } = useSettings();
 
   // Dynamic Head Updates (Title & Favicon)
@@ -51,7 +44,16 @@ const App: React.FC = () => {
     }
   }, [getSetting]);
 
-  const workItems = getSetting('portfolio.items', initialWorkItems);
+  // Fetch Projects from API
+  useEffect(() => {
+    let isMounted = true;
+    fetchProjects().then(data => {
+      if (isMounted && data.length > 0) {
+        setWorkItems(data);
+      }
+    });
+    return () => { isMounted = false; };
+  }, []);
 
   // Particles.js Initialization with refined brand integration
   useEffect(() => {
@@ -108,7 +110,7 @@ const App: React.FC = () => {
     return () => {
       revealElements.forEach((el) => observer.unobserve(el));
     };
-  }, [appState, selectedProject?.id]);
+  }, [appState, selectedProject?.id, workItems]); // Add workItems dependency
 
   const handleProjectClick = (project: any) => {
     if (appState === 'detail') {

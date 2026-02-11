@@ -1,27 +1,49 @@
+
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { ArrowRight, Link as LinkIcon, MessageCircle, ArrowLeft, Loader2, Play } from 'lucide-react';
+import { fetchProjectById, ProjectItem } from '../utils/api';
 
 interface ProjectDetailProps {
-  project: {
-    id: number;
-    title: string;
-    category: string;
-    image: string;
-  };
-  allProjects: any[];
-  onProjectSelect: (project: any) => void;
+  project: ProjectItem;
+  allProjects: ProjectItem[];
+  onProjectSelect: (project: ProjectItem) => void;
   onBack: () => void;
 }
 
-const ProjectDetail: React.FC<ProjectDetailProps> = ({ project, allProjects, onProjectSelect, onBack }) => {
+const ProjectDetail: React.FC<ProjectDetailProps> = ({ project: initialProject, allProjects, onProjectSelect, onBack }) => {
   const cardShadow = "rgba(0, 0, 0, 0.1) 0px 4px 12px";
   
-  const [displayProject, setDisplayProject] = useState(project);
+  const [displayProject, setDisplayProject] = useState<ProjectItem>(initialProject);
+  const [detailedProject, setDetailedProject] = useState<ProjectItem | null>(null);
+  const [isLoadingDetails, setIsLoadingDetails] = useState(true);
   const [transitionState, setTransitionState] = useState<'visible' | 'exiting' | 'resetting' | 'entering'>('visible');
   const [loadingProjectId, setLoadingProjectId] = useState<number | null>(null);
   const [scrollProgress, setScrollProgress] = useState(0);
   const [isScrolled, setIsScrolled] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
+
+  // Fetch Full Details when Project ID changes
+  useEffect(() => {
+    let isMounted = true;
+    setIsLoadingDetails(true);
+    
+    // Use initial info while loading to show something immediately
+    setDetailedProject(null);
+
+    fetchProjectById(displayProject.id).then(fullData => {
+      if (isMounted) {
+        if (fullData) {
+          setDetailedProject(fullData);
+        }
+        setIsLoadingDetails(false);
+      }
+    });
+
+    return () => { isMounted = false; };
+  }, [displayProject.id]);
+
+  // Combine initial list data with full details if available
+  const activeProject = detailedProject || displayProject;
 
   // Scroll Progress Logic
   useEffect(() => {
@@ -50,11 +72,11 @@ const ProjectDetail: React.FC<ProjectDetailProps> = ({ project, allProjects, onP
     return () => {
       scrollContainer.removeEventListener('scroll', handleScroll);
     };
-  }, [displayProject.id, transitionState]);
+  }, [displayProject.id, transitionState, detailedProject]); // Re-calc on detail load
 
   // Handle Project Changes with Internal Animation
   useEffect(() => {
-    if (project.id !== displayProject.id) {
+    if (initialProject.id !== displayProject.id) {
         setTransitionState('exiting');
         const scrollContainer = containerRef.current?.closest('.fixed.inset-0');
 
@@ -70,10 +92,11 @@ const ProjectDetail: React.FC<ProjectDetailProps> = ({ project, allProjects, onP
                 const revealElements = containerRef.current?.querySelectorAll('.reveal');
                 revealElements?.forEach(el => el.classList.remove('reveal-visible'));
 
-                setDisplayProject(project);
+                setDisplayProject(initialProject);
                 setScrollProgress(0); 
                 setIsScrolled(false);
                 setLoadingProjectId(null); 
+                setDetailedProject(null); // Reset detail
                 
                 if (scrollContainer) {
                     scrollContainer.scrollTop = 0;
@@ -91,7 +114,36 @@ const ProjectDetail: React.FC<ProjectDetailProps> = ({ project, allProjects, onP
             }, 700); 
         }, 1100); 
     }
-  }, [project.id, displayProject.id]);
+  }, [initialProject.id, displayProject.id]);
+
+  // Local Intersection Observer to handle reveals for new content
+  useEffect(() => {
+    if (transitionState === 'exiting') return;
+
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('reveal-visible');
+          observer.unobserve(entry.target);
+        }
+      });
+    }, {
+      root: null,
+      rootMargin: '0px 0px -20px 0px',
+      threshold: 0,
+    });
+
+    // Delay to allow DOM updates to complete after state change
+    const timer = setTimeout(() => {
+        const elements = containerRef.current?.querySelectorAll('.reveal');
+        elements?.forEach(el => observer.observe(el));
+    }, 200);
+
+    return () => {
+        clearTimeout(timer);
+        observer.disconnect();
+    };
+  }, [displayProject.id, detailedProject, transitionState]);
 
   const nextProjects = useMemo(() => {
     return allProjects
@@ -99,11 +151,9 @@ const ProjectDetail: React.FC<ProjectDetailProps> = ({ project, allProjects, onP
       .slice(0, 3);
   }, [displayProject.id, allProjects]);
 
-  const handleNextProjectClick = (work: any) => {
+  const handleNextProjectClick = (work: ProjectItem) => {
     if (loadingProjectId) return; 
-    
     setLoadingProjectId(work.id);
-    
     setTimeout(() => {
         onProjectSelect(work);
     }, 450);
@@ -128,6 +178,22 @@ const ProjectDetail: React.FC<ProjectDetailProps> = ({ project, allProjects, onP
         default: return 'opacity-100';
     }
   };
+
+  const hasVideos = activeProject.videos && activeProject.videos.length > 0;
+  const hasImages = activeProject.images && activeProject.images.length > 0;
+  
+  // Construct dynamic feature list from API data
+  const featureList = useMemo(() => {
+    const list = [
+        { label: 'التصنيف', value: activeProject.category }
+    ];
+    if (activeProject.features && Array.isArray(activeProject.features)) {
+        activeProject.features.forEach(f => {
+             list.push({ label: f.title, value: f.description });
+        });
+    }
+    return list;
+  }, [activeProject]);
 
   return (
     <div 
@@ -175,11 +241,12 @@ const ProjectDetail: React.FC<ProjectDetailProps> = ({ project, allProjects, onP
           <div className="flex flex-col lg:flex-row justify-between items-start lg:items-end gap-8 mb-16 text-right">
             <div className="flex-1">
               <h1 className="reveal text-[42px] md:text-[68px] font-black text-primary tracking-tighter leading-[1.1] mb-6" style={{ transitionDelay: '200ms' }}>
-                {displayProject.title}
+                {activeProject.title}
               </h1>
-              <p className="reveal text-lg md:text-xl text-[#6B6B6B] font-medium leading-relaxed max-w-2xl" style={{ transitionDelay: '400ms' }}>
-                موقع إلكتروني متكامل تم بناؤه خصيصاً لتعزيز الهوية الرقمية وتحقيق نتائج ملموسة لعملائنا في سوق العمل عبر حلول ذكية ومبتكرة.
-              </p>
+              <div className="reveal text-lg md:text-xl text-[#6B6B6B] font-medium leading-relaxed max-w-2xl" style={{ transitionDelay: '400ms' }}>
+                 {/* Using dangerouslySetInnerHTML if description contains HTML breaks, otherwise just text */}
+                 {activeProject.description}
+              </div>
             </div>
             
             <div className="reveal shrink-0 mb-2" style={{ transitionDelay: '600ms' }}>
@@ -209,18 +276,15 @@ const ProjectDetail: React.FC<ProjectDetailProps> = ({ project, allProjects, onP
             </div>
           </div>
 
+          {/* Details Grid - Dynamically populated from API features */}
           <div className="reveal bg-[#E5E5E5] p-[7px] rounded-[24px] grid grid-cols-1 md:grid-cols-3 gap-[7px] mb-24 shadow-sm" style={{ transitionDelay: '800ms' }}>
-            {[
-              { label: 'التصنيف', value: displayProject.category },
-              { label: 'التقنيات', value: 'نقطة تواصل / مخصص' },
-              { label: 'الجدول الزمني', value: 'أسبوعين' }
-            ].map((item, idx) => (
+            {featureList.map((item, idx) => (
               <div key={idx} className="bg-white rounded-[18px] p-8 md:p-10 flex flex-col items-start text-right">
                 <div className="flex items-center gap-1.5 mb-4">
                   <span className="text-[11px] font-black text-secondary tracking-[0.1em] uppercase">//</span>
                   <span className="text-[11px] font-black text-[#888888] tracking-[0.1em] uppercase">{item.label}</span>
                 </div>
-                <p className="text-[24px] md:text-[28px] font-black text-primary leading-tight">
+                <p className="text-[20px] md:text-[24px] font-black text-primary leading-tight line-clamp-2">
                   {item.value}
                 </p>
               </div>
@@ -229,109 +293,77 @@ const ProjectDetail: React.FC<ProjectDetailProps> = ({ project, allProjects, onP
 
           <section className="mb-24 reveal" style={{ transitionDelay: '1000ms' }}>
             <div className="rounded-[20px] overflow-hidden aspect-[16/10] lg:aspect-[16/8] relative group bg-[#e5e5e5]">
-              <img src={displayProject.image} alt="Project Overview" className="w-full h-full object-cover transition-transform duration-[3000ms] group-hover:scale-105" />
+              <img src={activeProject.main_image} alt="Project Overview" className="w-full h-full object-cover transition-transform duration-[3000ms] group-hover:scale-105" />
               <div className="absolute top-8 left-8 bg-primary/95 backdrop-blur px-4 py-2 rounded-lg text-[10px] font-black text-white shadow-lg border border-white/10 uppercase tracking-widest">
                  بواسطة نقطة تواصل
               </div>
             </div>
           </section>
 
-          <section className="mb-32 grid grid-cols-1 lg:grid-cols-2 gap-16 lg:gap-32 text-right">
-            <div className="space-y-8">
-              <div className="reveal flex items-center gap-3" style={{ transitionDelay: '200ms' }}>
-                <span className="text-secondary font-black text-2xl tracking-tighter">//</span>
-                <h3 className="text-[24px] md:text-[28px] font-black text-primary tracking-tight">أهداف المشروع</h3>
+          {/* Content / Result Section - Renders raw HTML from API */}
+          <section className="mb-32 grid grid-cols-1 gap-16 text-right">
+            {activeProject.content ? (
+              <div className="space-y-8">
+                 <div 
+                    className="text-[18px] md:text-[20px] text-[#6B6B6B] font-semibold leading-[1.6]" 
+                    dangerouslySetInnerHTML={{ __html: activeProject.content }}
+                 />
               </div>
-              <p className="reveal text-[18px] md:text-[20px] text-[#6B6B6B] font-semibold leading-[1.6]" style={{ transitionDelay: '500ms' }}>
-                احتاج هذا المشروع إلى حضور رقمي احترافي يعكس الخبرة والجودة العالية. عملنا في نقطة تواصل على تحليل المتطلبات بدقة وصياغة مفهوم استراتيجي يضمن التميز في سوق العمل ويوضح القيمة المضافة لشركائنا بأسلوب عصري ومبتكر.
-              </p>
-            </div>
-            <div className="space-y-8">
-              <div className="reveal flex items-center gap-3" style={{ transitionDelay: '350ms' }}>
-                <span className="text-secondary font-black text-2xl tracking-tighter">//</span>
-                <h3 className="text-[24px] md:text-[28px] font-black text-primary tracking-tight">النتيجة</h3>
-              </div>
-              <p className="reveal text-[18px] md:text-[20px] text-[#6B6B6B] font-semibold leading-[1.6]" style={{ transitionDelay: '500ms' }}>
-                قدمنا موقعاً إلكترونياً يركز على التحويل وبناء الثقة، مع رسائل واضحة وتصميم استراتيجي ومرئيات مصقولة تماماً. التجربة الجديدة تبرز الخدمات الأساسية، المصداقية، وقصص النجاح، مما يوجه الزوار بسلاسة من الانطباع الأول إلى التواصل المباشر.
-              </p>
-            </div>
+            ) : null}
           </section>
 
-          <section className="mb-32 space-y-2 reveal" style={{ transitionDelay: '200ms' }}>
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-2">
-              <div className="lg:col-span-12 rounded-[20px] overflow-hidden aspect-[16/7] bg-[#e5e5e5]">
-                 <img src="https://images.unsplash.com/photo-1497215728101-856f4ea42174?auto=format&fit=crop&q=80&w=1600" className="w-full h-full object-cover" alt="Detail 1" />
-              </div>
-              <div className="lg:col-span-6 rounded-[20px] overflow-hidden aspect-square bg-[#e5e5e5]">
-                 <img src="https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?auto=format&fit=crop&q=80&w=1200" className="w-full h-full object-cover" alt="Detail 2" />
-              </div>
-              <div className="lg:col-span-6 rounded-[20px] overflow-hidden aspect-square bg-[#e5e5e5]">
-                 <img src="https://images.unsplash.com/photo-1542744173-8e7e53415bb0?auto=format&fit=crop&q=80&w=1200" className="w-full h-full object-cover" alt="Detail 3" />
-              </div>
-            </div>
-          </section>
+          {/* Image Grid from API */}
+          {hasImages && (
+             <section className="mb-32 space-y-2 reveal" style={{ transitionDelay: '200ms' }}>
+                <div className="grid grid-cols-1 lg:grid-cols-12 gap-2">
+                  {activeProject.images?.slice(0, 3).map((img, idx) => (
+                    <div key={idx} className={`${idx === 0 ? 'lg:col-span-12 aspect-[16/7]' : 'lg:col-span-6 aspect-square'} rounded-[20px] overflow-hidden bg-[#e5e5e5]`}>
+                       <img src={img} className="w-full h-full object-cover hover:scale-105 transition-transform duration-[2000ms]" alt={`Detail ${idx+1}`} />
+                    </div>
+                  ))}
+                </div>
+             </section>
+          )}
 
-          {/* New Video Showcase Section */}
-          <section className="mb-32 reveal" style={{ transitionDelay: '300ms' }}>
-            <div className="flex flex-col items-start gap-4 mb-12">
-              <div className="inline-flex items-center gap-2 bg-primary px-4 py-2 rounded-full shadow-lg">
-                <span className="text-secondary font-black text-[12px] tracking-tight">//</span>
-                <span className="text-white text-[12px] font-black tracking-widest uppercase">استعراض مرئي</span>
-              </div>
-              <h2 className="text-3xl md:text-5xl font-black text-primary tracking-tight">التجربة الحية.</h2>
-            </div>
+          {/* Video Showcase Section from API */}
+          {hasVideos && (
+             <section className="mb-32 reveal" style={{ transitionDelay: '300ms' }}>
+                <div className="flex flex-col items-start gap-4 mb-12">
+                  <div className="inline-flex items-center gap-2 bg-primary px-4 py-2 rounded-full shadow-lg">
+                    <span className="text-secondary font-black text-[12px] tracking-tight">//</span>
+                    <span className="text-white text-[12px] font-black tracking-widest uppercase">استعراض مرئي</span>
+                  </div>
+                  <h2 className="text-3xl md:text-5xl font-black text-primary tracking-tight">التجربة الحية.</h2>
+                </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-              {/* Video 1: YouTube */}
-              <div className="group space-y-5 reveal transition-all duration-700" style={{ transitionDelay: '400ms' }}>
-                <div className="relative rounded-[32px] overflow-hidden aspect-video bg-[#E5E5E5] shadow-2xl transition-transform duration-500 group-hover:-translate-y-2 border-4 border-white/50">
-                  <iframe 
-                    className="absolute inset-0 w-full h-full"
-                    src="https://www.youtube.com/embed/dQw4w9WgXcQ?autoplay=0&mute=0" 
-                    title="Video Showcase 1"
-                    frameBorder="0" 
-                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
-                    allowFullScreen
-                  ></iframe>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                  {activeProject.videos?.map((vid, idx) => {
+                     return (
+                        <div key={idx} className="group space-y-5 reveal transition-all duration-700" style={{ transitionDelay: `${400 + (idx*150)}ms` }}>
+                          <div className="relative rounded-[32px] overflow-hidden aspect-video bg-[#E5E5E5] shadow-2xl transition-transform duration-500 group-hover:-translate-y-2 border-4 border-white/50">
+                            {vid.iframe ? (
+                                <div 
+                                    className="w-full h-full [&>iframe]:w-full [&>iframe]:h-full"
+                                    dangerouslySetInnerHTML={{ __html: vid.iframe }}
+                                />
+                            ) : (
+                                <iframe 
+                                  className="absolute inset-0 w-full h-full"
+                                  src={vid.url || ''} 
+                                  title={vid.title}
+                                  frameBorder="0" 
+                                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+                                  allowFullScreen
+                                ></iframe>
+                            )}
+                          </div>
+                          <h4 className="text-xl font-bold text-primary">{vid.title}</h4>
+                        </div>
+                     );
+                  })}
                 </div>
-                <div className="pr-2">
-                  <h4 className="text-xl md:text-2xl font-black text-primary leading-tight group-hover:text-secondary transition-colors duration-300">تغطية شاملة للحدث</h4>
-                </div>
-              </div>
-
-              {/* Video 2: Vimeo */}
-              <div className="group space-y-5 reveal transition-all duration-700" style={{ transitionDelay: '550ms' }}>
-                <div className="relative rounded-[32px] overflow-hidden aspect-video bg-[#E5E5E5] shadow-2xl transition-transform duration-500 group-hover:-translate-y-2 border-4 border-white/50">
-                  <iframe 
-                    className="absolute inset-0 w-full h-full"
-                    src="https://player.vimeo.com/video/76979871?h=8272b0486b&title=0&byline=0&portrait=0" 
-                    frameBorder="0" 
-                    allow="autoplay; fullscreen; picture-in-picture" 
-                    allowFullScreen
-                  ></iframe>
-                </div>
-                <div className="pr-2">
-                  <h4 className="text-xl md:text-2xl font-black text-primary leading-tight group-hover:text-secondary transition-colors duration-300">هوية بصرية متحركة</h4>
-                </div>
-              </div>
-
-              {/* Video 3: External / iFrame */}
-              <div className="group space-y-5 reveal transition-all duration-700" style={{ transitionDelay: '700ms' }}>
-                <div className="relative rounded-[32px] overflow-hidden aspect-video bg-[#E5E5E5] shadow-2xl transition-transform duration-500 group-hover:-translate-y-2 border-4 border-white/50">
-                  <iframe 
-                    className="absolute inset-0 w-full h-full"
-                    src="https://www.youtube.com/embed/vH8p326U5s0" 
-                    frameBorder="0" 
-                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
-                    allowFullScreen
-                  ></iframe>
-                </div>
-                <div className="pr-2">
-                  <h4 className="text-xl md:text-2xl font-black text-primary leading-tight group-hover:text-secondary transition-colors duration-300">كواليس العمل الإبداعي</h4>
-                </div>
-              </div>
-            </div>
-          </section>
+             </section>
+          )}
 
           <section className="pb-20">
             <h2 className="reveal text-5xl md:text-7xl font-black text-primary tracking-tighter mb-16 text-right" style={{ transitionDelay: '200ms' }}>مشاريع تالية.</h2>
@@ -346,7 +378,7 @@ const ProjectDetail: React.FC<ProjectDetailProps> = ({ project, allProjects, onP
                 >
                   <div className="overflow-hidden relative w-full aspect-[3.7/4]">
                     <img 
-                      src={work.image} 
+                      src={work.main_image} 
                       alt={work.title} 
                       className={`w-full h-full object-cover transition-all duration-[1500ms] ease-[cubic-bezier(0.16,1,0.3,1)] scale-105 group-hover:scale-100 ${loadingProjectId === work.id ? 'blur-sm grayscale' : 'md:group-hover:blur-[4px]'}`} 
                     />
