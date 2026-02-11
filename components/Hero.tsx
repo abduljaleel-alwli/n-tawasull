@@ -1,18 +1,42 @@
 import React from 'react';
 import { ArrowLeft, ChevronDown, Star } from 'lucide-react';
+import { useSettings } from '../context/SettingsContext';
 
 const Hero: React.FC = () => {
-  const column1 = [
-    { id: 'design1', height: 'h-[220px]', src: 'https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&q=80&w=800' },
-    { id: 'design2', height: 'h-[300px]', src: 'https://images.unsplash.com/photo-1460925895917-afdab827c52f?auto=format&fit=crop&q=80&w=800' },
-    { id: 'design3', height: 'h-[240px]', src: 'https://images.unsplash.com/photo-1542744173-8e7e53415bb0?auto=format&fit=crop&q=80&w=800' },
-  ];
+  const { getSetting } = useSettings();
+  
+  const title = getSetting('hero.title', 'الحل التسويقي الاستراتيجي الأول في المملكة');
+  const description = getSetting('hero.description', 'انطلقـنا مـن جـوار بيت الله الحرام، مـن قلب مكة المكرمة، لنكون المحرك الفاعل لنمو أعمالكم عبر حلول تسويقية تجمع بين الجـودة والابتكار الرقمي.');
+  const badge = getSetting('hero.badge', ' نقطة تواصل - مكة المكرمة');
+  const scrollText = getSetting('hero.scroll_text', 'اسحب للأسفل');
+  const showScrollIndicator = getSetting('hero.scroll_indicator', true);
+  
+  const ctas = getSetting('hero.ctas', [
+    { label: "خدماتنا", url: "#services" },
+    { label: "تواصل معنا", url: "#contact" }
+  ]);
 
-  const column2 = [
-    { id: 'design4', height: 'h-[300px]', src: 'https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?auto=format&fit=crop&q=80&w=800' },
-    { id: 'design5', height: 'h-[220px]', src: 'https://images.unsplash.com/photo-1551434678-e076c223a692?auto=format&fit=crop&q=80&w=800' },
-    { id: 'design6', height: 'h-[300px]', src: 'https://images.unsplash.com/photo-1558403194-611308249627?auto=format&fit=crop&q=80&w=800' },
-  ];
+  const rawImages = getSetting('hero.images', [
+    { url: "https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&q=80&w=800", alt: "hero photo" },
+    { url: "https://images.unsplash.com/photo-1460925895917-afdab827c52f?auto=format&fit=crop&q=80&w=800", alt: "hero photo" },
+    { url: "https://images.unsplash.com/photo-1542744173-8e7e53415bb0?auto=format&fit=crop&q=80&w=800", alt: "hero photo" },
+    { url: "https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?auto=format&fit=crop&q=80&w=800", alt: "hero photo" },
+    { url: "https://images.unsplash.com/photo-1551434678-e076c223a692?auto=format&fit=crop&q=80&w=800", alt: "hero photo" },
+    { url: "https://images.unsplash.com/photo-1558403194-611308249627?auto=format&fit=crop&q=80&w=800", alt: "hero photo" }
+  ]);
+
+  const heights = ['h-[220px]', 'h-[300px]', 'h-[240px]', 'h-[300px]', 'h-[220px]', 'h-[300px]'];
+  
+  const processedImages = Array.isArray(rawImages) ? rawImages.map((img: any, idx: number) => ({
+    id: `hero-img-${idx}`,
+    src: img.url,
+    alt: img.alt || 'hero image',
+    height: heights[idx % heights.length]
+  })) : [];
+
+  const midPoint = Math.ceil(processedImages.length / 2);
+  const column1 = processedImages.slice(0, midPoint);
+  const column2 = processedImages.slice(midPoint);
 
   const AnimatedButton = ({ 
     text, 
@@ -61,23 +85,27 @@ const Hero: React.FC = () => {
         <div className="lg:col-span-7 flex flex-col items-start text-right pt-[150px] md:pt-32 z-10">
           <div className="inline-flex items-center gap-2 bg-primary px-5 py-2.5 rounded-full mb-8 shadow-xl animate-entrance-up delay-1000 hover:scale-105 transition-transform duration-300">
             <span className="text-secondary font-black text-[11px]">//</span>
-            <span className="text-white text-[11px] font-black tracking-widest uppercase">نقطة تواصل - مكة المكرمة</span>
+            <span className="text-white text-[11px] font-black tracking-widest uppercase">{badge}</span>
             <span className="text-secondary font-black text-[11px]">//</span>
           </div>
 
           <h1 className="text-[32px] md:text-[44px] lg:text-[56px] font-black leading-[1.3] tracking-[-0.01em] mb-8 text-balance animate-entrance-up delay-1200">
-            الحل التسويقي
-             الاستراتيجي الأول
-            <span className="text-[#999999] px-4">في المملكة </span>
+             {title}
           </h1>
 
           <p className="text-base md:text-lg text-[#6B6B6B] font-medium mb-10 max-w-xl leading-relaxed animate-entrance-up delay-1400">
-            انطلقـنا مـن جـوار بيت الله الحرام، مـن قلب مكة المكرمة، لنكون المحرك الفاعل لنمو أعمالكم عبر حلول تسويقية تجمع بين الجـودة والابتكار الرقمي.
+            {description}
           </p>
 
           <div className="flex flex-row sm:flex-wrap items-center gap-4 mb-12 sm:mb-16 animate-entrance-up delay-1600 w-full sm:w-auto">
-            <AnimatedButton text="خدماتنا" href="#services" variant="orange" />
-            <AnimatedButton text="تواصل معنا" href="#contact" variant="black" />
+            {Array.isArray(ctas) && ctas.map((cta: any, idx: number) => (
+                <AnimatedButton 
+                    key={idx} 
+                    text={cta.label} 
+                    href={cta.url} 
+                    variant={idx === 0 ? 'orange' : 'black'} 
+                />
+            ))}
           </div>
 
           <div className="flex flex-row items-center gap-5 animate-entrance-up delay-1800">
@@ -129,12 +157,14 @@ const Hero: React.FC = () => {
         </div>
       </div>
 
-      <div className="absolute bottom-8 left-0 right-0 mx-auto w-fit flex flex-col items-center gap-3 animate-entrance-up delay-2800 pointer-events-none">
-          <span className="text-[10px] font-black text-[#999999] tracking-[0.2em] uppercase">اسحب للأسفل</span>
-          <div className="relative w-6 h-10 rounded-full border-2 border-[#D1D1D1] flex justify-center p-1 overflow-hidden">
-             <div className="w-1 h-2 bg-secondary rounded-full animate-scroll-indicator"></div>
-          </div>
-      </div>
+      {showScrollIndicator && (
+        <div className="absolute bottom-8 left-0 right-0 mx-auto w-fit flex flex-col items-center gap-3 animate-entrance-up delay-2800 pointer-events-none">
+            <span className="text-[10px] font-black text-[#999999] tracking-[0.2em] uppercase">{scrollText}</span>
+            <div className="relative w-6 h-10 rounded-full border-2 border-[#D1D1D1] flex justify-center p-1 overflow-hidden">
+               <div className="w-1 h-2 bg-secondary rounded-full animate-scroll-indicator"></div>
+            </div>
+        </div>
+      )}
       
       <style>{`
         @keyframes scroll-up {

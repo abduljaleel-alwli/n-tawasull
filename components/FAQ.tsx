@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
+import { useSettings } from '../context/SettingsContext';
 
-const faqs = [
+const initialFaqs = [
   {
     question: "كيف يعمل نموذج الاشتراك؟",
     answer: "أنت تدفع رسماً شهرياً ثابتاً وتحصل على إمكانية الوصول إلى فريق تصميم مخصص. يمكنك تقديم طلبات غير محدودة، وسنقوم بتسليمها واحداً تلو الآخر (أو اثنين في وقت واحد مع الباقة الاحترافية). لا توجد فواتير بالساعة، ولا عقود — يمكنك الإلغاء أو الإيقاف مؤقتاً في أي وقت."
@@ -8,27 +9,17 @@ const faqs = [
   {
     question: "ما هي أنواع مهام التصميم التي يمكنني طلبها؟",
     answer: "كل شيء بدءاً من تصميم الشعارات والهوية البصرية إلى واجهات المستخدم (UI/UX) لمواقع الويب وتطبيقات الجوال، ورسومات منصات التواصل الاجتماعي، وتطوير المواقع الكاملة باستخدام Framer."
-  },
-  {
-    question: "ما هي سرعة استلام التصاميم؟",
-    answer: "يتم إكمال معظم الطلبات في غضون 48 ساعة أو أقل. قد تستغرق المشاريع المعقدة مثل مواقع الويب متعددة الصفحات وقتاً أطول قليلاً."
-  },
-  {
-    question: "ما هي الأدوات التي تستخدمونها لإدارة العمل؟",
-    answer: "نستخدم بشكل أساسي Slack للتواصل و Figma للتصميم. نوفر أيضاً بوابة عملاء مخصصة لتتبع المشاريع والمهام بسلاسة."
-  },
-  {
-    question: "هل هناك حد لعدد الطلبات التي يمكنني تقديمها؟",
-    answer: "لا! يمكنك إضافة أي عدد تريده من الطلبات إلى قائمة الانتظار الخاصة بك، وسنعمل عليها واحداً تلو الآخر بناءً على أولوياتك."
-  },
-  {
-    question: "هل يمكنني الإلغاء أو الإيقاف المؤقت في أي وقت؟",
-    answer: "بالتأكيد. لا توجد التزامات طويلة الأمد. يمكنك إيقاف اشتراكك أو إلغاؤه في أي وقت بنقرة واحدة فقط."
   }
 ];
 
 const FAQ: React.FC = () => {
   const [openIndex, setOpenIndex] = useState<number | null>(0);
+  const { getSetting } = useSettings();
+  
+  const faqs = getSetting('faqs.items', initialFaqs);
+  const badge = getSetting('faqs.badge', ' الأسئلة الشائعة');
+  const title = getSetting('faqs.title', 'استفسارات.');
+  const description = getSetting('faqs.description', 'كل ما تحتاج لمعرفته حول خدمة اشتراك التسويق الخاصة بنا.');
 
   const cardShadow = "rgba(0, 0, 0, 0.08) 0px 0.602187px 0.602187px -0.916667px, rgba(0, 0, 0, 0.08) 0px 2.28853px 2.28853px -1.83333px, rgba(0, 0, 0, 0.07) 0px 10px 10px -2.75px";
 
@@ -40,23 +31,23 @@ const FAQ: React.FC = () => {
         <div className="lg:col-span-5 flex flex-col items-start text-right space-y-8">
           <div className="reveal inline-flex items-center gap-2 bg-primary px-4 py-2.5 rounded-[25px] shadow-lg" style={{ transitionDelay: '0ms' }}>
             <span className="text-secondary font-black text-[12px] tracking-tight">//</span>
-            <span className="text-white font-black text-[12px] tracking-tight uppercase">الأسئلة الشائعة</span>
+            <span className="text-white font-black text-[12px] tracking-tight uppercase">{badge}</span>
             <span className="text-secondary font-black text-[12px] tracking-tight">//</span>
           </div>
           
           <div className="space-y-4">
             <h1 className="reveal text-3xl sm:text-4xl md:text-6xl font-black text-[#111111] leading-[1.25] md:leading-[1.2] tracking-normal" style={{ transitionDelay: '200ms' }}>
-              استفسارات.
+              {title}
             </h1>
             <p className="reveal text-[19px] md:text-[21px] text-[#6B6B6B] font-medium leading-[1.4] max-w-sm" style={{ transitionDelay: '400ms' }}>
-              كل ما تحتاج لمعرفته حول خدمة اشتراك التسويق الخاصة بنا.
+              {description}
             </p>
           </div>
         </div>
 
         {/* FAQ Container - Left Side in RTL */}
         <div className="reveal lg:col-span-7 bg-[#E5E5E5] rounded-[20px] p-[7px] flex flex-col gap-3 transition-none" style={{ transitionDelay: '500ms' }}>
-          {faqs.map((faq, idx) => (
+          {Array.isArray(faqs) && faqs.map((faq: any, idx: number) => (
             <div 
               key={idx} 
               className={`bg-background rounded-[16px] overflow-hidden transition-all duration-700 opacity-0 translate-y-8 [.reveal-visible_&]:opacity-100 [.reveal-visible_&]:translate-y-0`}

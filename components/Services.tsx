@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Plus, ArrowDown, Loader2, PlusCircle } from 'lucide-react';
+import { useSettings } from '../context/SettingsContext';
 
 const sliderImages = [
   "https://images.unsplash.com/photo-1460925895917-afdab827c52f?auto=format&fit=crop&q=80&w=800",
@@ -7,7 +8,7 @@ const sliderImages = [
   "https://images.unsplash.com/photo-1551288049-bebda4e38f71?auto=format&fit=crop&q=80&w=800"
 ];
 
-const serviceData = [
+const initialServiceData = [
   {
     title: "إدارة حسابات التواصل الاجتماعي",
     category: "تسويق",
@@ -160,6 +161,9 @@ const Services: React.FC = () => {
   const [activeTab, setActiveTab] = useState('all');
   const [visibleCount, setVisibleCount] = useState(3);
   const [isLoading, setIsLoading] = useState(false);
+  const { getSetting } = useSettings();
+
+  const serviceData = getSetting('services.items', initialServiceData);
 
   useEffect(() => {
     setVisibleCount(3);
@@ -167,7 +171,7 @@ const Services: React.FC = () => {
 
   const filteredServices = activeTab === 'all' 
     ? serviceData 
-    : serviceData.filter(s => s.category === activeTab);
+    : serviceData.filter((s: any) => s.category === activeTab);
 
   const displayedServices = filteredServices.slice(0, visibleCount);
   const hasMore = visibleCount < filteredServices.length;
@@ -218,9 +222,9 @@ const Services: React.FC = () => {
       </div>
 
       <div className="reveal grid grid-cols-1 md:grid-cols-1 lg:grid-cols-3 gap-6 transition-all duration-700 min-h-[400px]" style={{ transitionDelay: '500ms' }}>
-        {displayedServices.map((service, idx) => (
+        {displayedServices.map((service: any, idx: number) => (
           <div 
-            key={`${service.title}-${activeTab}`} 
+            key={`${service.title}-${activeTab}-${idx}`} 
             className={`bg-[#e5e5e5] rounded-[23px] p-[7px] flex flex-col md:flex-row lg:flex-col gap-[7px] animate-entrance-up`}
             style={{ 
               animationDelay: `${(idx % 3) * 150}ms`,
@@ -235,7 +239,7 @@ const Services: React.FC = () => {
               <h3 className="text-2xl font-black text-[#111111] mb-2 tracking-tight leading-tight">{service.title}</h3>
               <p className="text-[#666666] text-[14px] font-medium leading-relaxed mb-6 line-clamp-2 md:line-clamp-3 lg:line-clamp-2">{service.description}</p>
               <div className="flex flex-wrap gap-2 mt-auto">
-                {service.tags.map((tag) => (
+                {service.tags && Array.isArray(service.tags) && service.tags.map((tag: string) => (
                   <span key={tag} className="px-3.5 py-2 bg-[#e8e8e8] rounded-full text-[10px] font-black text-[#555555] uppercase tracking-wider flex items-center gap-1.5 transition-all hover:bg-white hover:text-secondary">
                     <span className="w-1.5 h-1.5 rounded-full bg-secondary"></span>
                     {tag}

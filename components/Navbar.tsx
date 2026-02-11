@@ -1,11 +1,17 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { ChevronLeft } from 'lucide-react';
+import { useSettings } from '../context/SettingsContext';
+import { getFileUrl } from '../utils/api';
 
 const Navbar: React.FC = () => {
   const [scrolled, setScrolled] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [currentSlide, setCurrentSlide] = useState(0);
   const [hasOpenedBefore, setHasOpenedBefore] = useState(false);
+
+  const { getSetting } = useSettings();
+  const logoPath = getSetting('branding.logo', null);
+  const logoUrl = getFileUrl(logoPath, 'logo.png');
 
   const menuImages = [
     "https://images.unsplash.com/photo-1522202176988-66273c2fd55f?auto=format&fit=crop&q=80&w=800",
@@ -52,7 +58,7 @@ const Navbar: React.FC = () => {
           
           <div className="flex items-center gap-2">
             <a href="#home">
-              <img src="logo.png" alt="نقطة تواصل" className="h-10 md:h-14 w-auto object-contain transition-transform hover:scale-105 duration-300" />
+              <img src={logoUrl} alt="نقطة تواصل" className="h-10 md:h-14 w-auto object-contain transition-transform hover:scale-105 duration-300" />
             </a>
           </div>
 

@@ -1,5 +1,6 @@
 import React, { useState, useRef } from 'react';
 import { Mail, Phone, MessageSquare, CheckCircle, Loader2, ArrowLeft, Upload, Check } from 'lucide-react';
+import { useSettings } from '../context/SettingsContext';
 
 const serviceOptions = [
   "إدارة حسابات التواصل الاجتماعي",
@@ -25,6 +26,16 @@ const Contact: React.FC = () => {
   const [showSuccess, setShowSuccess] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   
+  const { getSetting } = useSettings();
+  
+  const contactEmail = getSetting('contact.email_to', 'info@n-tawasull.sa');
+  const contactPhone = getSetting('contact.phone', '+966555218270');
+  const contactWhatsapp = getSetting('contact.whatsapp', '0555218270');
+  
+  const badge = getSetting('contact.badge', 'تواصل معنا');
+  const title = getSetting('contact.title', 'حياك الله.');
+  const description = getSetting('contact.description', 'نحن هنا لأعمال مشتركة وتحويل طموحاتك لنتائج ملموسة. دعنا نبدأ الرحلة الآن.');
+
   const cardShadow = "rgba(0, 0, 0, 0.08) 0px 0.602187px 0.602187px -0.916667px, rgba(0, 0, 0, 0.08) 0px 2.28853px 2.28853px -1.83333px, rgba(0, 0, 0, 0.07) 0px 10px 10px -2.75px";
 
   const toggleService = (service: string) => {
@@ -115,16 +126,16 @@ const Contact: React.FC = () => {
           <div className="space-y-8 text-right mb-12">
             <div className="reveal inline-flex items-center gap-2 bg-primary px-4 py-2.5 rounded-[25px] shadow-lg" style={{ transitionDelay: '0ms' }}>
               <span className="text-secondary font-black text-[12px] tracking-tight">//</span>
-              <span className="text-white font-black text-[12px] tracking-tight uppercase">تواصل معنا</span>
+              <span className="text-white font-black text-[12px] tracking-tight uppercase">{badge}</span>
               <span className="text-secondary font-black text-[12px] tracking-tight">//</span>
             </div>
             
             <div className="space-y-4">
               <h2 className="reveal text-3xl sm:text-4xl md:text-6xl font-black text-[#111111] leading-[1.25] md:leading-[1.2] tracking-normal" style={{ transitionDelay: '100ms' }}>
-                حياك الله.
+                {title}
               </h2>
               <p className="reveal text-[18px] md:text-[19px] text-[#6B6B6B] font-medium leading-[1.4] max-w-sm" style={{ transitionDelay: '200ms' }}>
-                نحن هنا لأعمال مشتركة وتحويل طموحاتك لنتائج ملموسة. دعنا نبدأ الرحلة الآن.
+                {description}
               </p>
             </div>
           </div>
@@ -134,26 +145,26 @@ const Contact: React.FC = () => {
                 <ContactCard 
                     icon={Mail} 
                     label="البريد الإلكتروني" 
-                    value="tawasull.sa@gmail.com" 
+                    value={contactEmail} 
                     delay="400ms" 
-                    href="mailto:tawasull.sa@gmail.com"
+                    href={`mailto:${contactEmail}`}
                     dots={1}
                 />
             </div>
             <ContactCard 
                 icon={MessageSquare} 
                 label="الواتساب" 
-                value="0555218270" 
+                value={contactWhatsapp} 
                 delay="500ms" 
-                href="https://wa.me/966555218270"
+                href={`https://wa.me/${contactWhatsapp.replace(/\+/g, '').replace(/\s/g, '')}`}
                 dots={2}
             />
             <ContactCard 
                 icon={Phone} 
                 label="اتصال مباشر" 
-                value="0555218270" 
+                value={contactPhone} 
                 delay="600ms" 
-                href="tel:+966555218270"
+                href={`tel:${contactPhone.replace(/\s/g, '')}`}
                 dots={3}
             />
           </div>

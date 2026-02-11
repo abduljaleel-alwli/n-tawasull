@@ -1,6 +1,7 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import App from './App';
+import { SettingsProvider } from './context/SettingsContext';
 
 // Initialize Mouse Follower
 const initCursor = () => {
@@ -32,7 +33,9 @@ if (!rootElement) {
 const root = ReactDOM.createRoot(rootElement);
 root.render(
   <React.StrictMode>
-    <App />
+    <SettingsProvider>
+      <App />
+    </SettingsProvider>
   </React.StrictMode>
 );
 

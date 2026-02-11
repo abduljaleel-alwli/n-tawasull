@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
-import { ArrowLeft, Twitter, Linkedin, Instagram, Globe, Shield, FileText, Mail, CheckCircle2 } from 'lucide-react';
+import { ArrowLeft, Twitter, Linkedin, Instagram, Globe, Shield, FileText, Mail, CheckCircle2, Facebook, X } from 'lucide-react';
+import { useSettings } from '../context/SettingsContext';
+import { getFileUrl } from '../utils/api';
 
 const RollingLink: React.FC<{ text: string; href: string; icon?: React.ReactNode }> = ({ text, href, icon }) => {
   return (
@@ -24,6 +26,30 @@ const Footer: React.FC = () => {
   const [email, setEmail] = useState('');
   const [isSubscribed, setIsSubscribed] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  
+  const { getSetting } = useSettings();
+  
+  const siteName = getSetting('site_name', 'نقطة تواصل');
+  const siteDescription = getSetting('site_description', 'وكالة تسويق إبداعية');
+  const logoPath = getSetting('branding.logo', null);
+  const logoUrl = getFileUrl(logoPath, 'logo.png');
+
+  const contactEmail = getSetting('contact.email_to', 'info@n-tawasull.sa');
+  const location = getSetting('contact.location', 'مكة المكرمة - المملكة');
+  
+  const socialLinksRaw = getSetting('contact.social_links', []);
+  const socialLinks = Array.isArray(socialLinksRaw) ? socialLinksRaw : [];
+
+  const getSocialIcon = (platform: string, iconClass: string) => {
+      // If we want to use the FontAwesome class from the API, we could render an <i> element.
+      // But keeping consistency with Lucide icons for now or mapping them.
+      const p = platform.toLowerCase();
+      if (p.includes('twitter') || p.includes('x')) return <Twitter size={16} />;
+      if (p.includes('linkedin')) return <Linkedin size={16} />;
+      if (p.includes('instagram')) return <Instagram size={16} />;
+      if (p.includes('facebook')) return <Facebook size={16} />;
+      return <Globe size={16} />;
+  };
 
   const handleNewsletterSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -110,22 +136,22 @@ const Footer: React.FC = () => {
             <div className="pt-6 space-y-6">
               <div className="flex items-center gap-4 group cursor-default">
                  <div className="h-14 w-14 bg-white/5 rounded-2xl flex items-center justify-center p-2 group-hover:bg-white/10 transition-colors">
-                    <img src="logo.png" alt="نقطة تواصل" className="w-full h-auto object-contain filter brightness-0 invert" />
+                    <img src={logoUrl} alt={siteName} className="w-full h-auto object-contain filter brightness-0 invert" />
                  </div>
                  <div className="flex flex-col text-right">
-                    <span className="text-white font-black text-xl">نقطة تواصل</span>
-                    <span className="text-[#A1A1A1] text-xs font-bold uppercase tracking-widest">وكالة تسويق إبداعية</span>
+                    <span className="text-white font-black text-xl">{siteName}</span>
+                    <span className="text-[#A1A1A1] text-xs font-bold uppercase tracking-widest">{siteDescription}</span>
                  </div>
               </div>
               
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                 <a href="mailto:tawasull.sa@gmail.com" className="flex items-center gap-3 text-white group cursor-pointer bg-white/5 hover:bg-white/10 p-4 rounded-2xl transition-all duration-500" data-cursor-text="راسلنا">
+                 <a href={`mailto:${contactEmail}`} className="flex items-center gap-3 text-white group cursor-pointer bg-white/5 hover:bg-white/10 p-4 rounded-2xl transition-all duration-500" data-cursor-text="راسلنا">
                     <div className="w-10 h-10 rounded-full bg-secondary/10 flex items-center justify-center group-hover:bg-secondary transition-all duration-500 shrink-0">
                       <Mail size={16} className="text-secondary group-hover:text-primary" />
                     </div>
                     <div className="flex flex-col items-start overflow-hidden">
                        <span className="text-[10px] font-black text-white/40 uppercase tracking-tighter">البريد الإلكتروني</span>
-                       <span className="font-bold text-[14px] text-[#A1A1A1] group-hover:text-white transition-colors truncate w-full" dir="ltr">tawasull.sa@gmail.com</span>
+                       <span className="font-bold text-[14px] text-[#A1A1A1] group-hover:text-white transition-colors truncate w-full" dir="ltr">{contactEmail}</span>
                     </div>
                  </a>
                  <div className="flex items-center gap-3 text-white group cursor-default bg-white/5 hover:bg-white/10 p-4 rounded-2xl transition-all duration-500">
@@ -134,7 +160,7 @@ const Footer: React.FC = () => {
                     </div>
                     <div className="flex flex-col items-start">
                        <span className="text-[10px] font-black text-white/40 uppercase tracking-tighter">الموقع</span>
-                       <span className="font-bold text-[14px] text-[#A1A1A1] group-hover:text-white transition-colors">مكة المكرمة، المملكة</span>
+                       <span className="font-bold text-[14px] text-[#A1A1A1] group-hover:text-white transition-colors">{location}</span>
                     </div>
                  </div>
               </div>
@@ -177,13 +203,13 @@ const Footer: React.FC = () => {
             <div className="space-y-8 col-span-2 sm:col-span-1">
               <h5 className="text-[11px] font-black uppercase tracking-[0.2em] text-secondary border-b border-white/5 pb-4">/ التواصل</h5>
               <ul className="space-y-3 flex flex-col items-start">
-                {[
-                  { name: 'إكس / تويتر', id: 'x', icon: <Twitter size={16} /> },
-                  { name: 'لينكد إن', id: 'linkedin', icon: <Linkedin size={16} /> },
-                  { name: 'إنستقرام', id: 'instagram', icon: <Instagram size={16} /> }
-                ].map((item) => (
-                  <li key={item.id} className="w-full">
-                    <RollingLink text={item.name} href="#" icon={item.icon} />
+                {socialLinks.filter((s: any) => s.platform !== 'Email' && s.platform !== 'WhatsApp').map((item: any, idx: number) => (
+                  <li key={idx} className="w-full">
+                    <RollingLink 
+                        text={item.platform} 
+                        href={item.url} 
+                        icon={getSocialIcon(item.platform, item.icon_value)} 
+                    />
                   </li>
                 ))}
               </ul>
@@ -195,12 +221,12 @@ const Footer: React.FC = () => {
         <div className="pt-10 border-t border-white/5 flex flex-col md:flex-row justify-between items-center gap-8 text-center md:text-right">
           <div className="flex flex-col md:flex-row items-center gap-4 md:gap-8">
             <div className="flex items-center gap-3 text-[#A1A1A1] text-[14px] font-bold">
-               <span className="opacity-50">© 2025 نقطة تواصل.</span>
+               <span className="opacity-50">© {new Date().getFullYear()} {siteName}.</span>
                <div className="w-[1px] h-4 bg-white/10 hidden md:block"></div>
                <span className="text-secondary/80">صنع بشغف بواسطة Shamll tech</span>
             </div>
             <div className="text-[#64748b] text-[12px] font-bold uppercase tracking-widest hidden lg:block">
-               المملكة العربية السعودية - مكة المكرمة
+               {location}
             </div>
           </div>
           
@@ -212,9 +238,11 @@ const Footer: React.FC = () => {
              
              {/* Simple Social Icons for mobile quick access */}
              <div className="flex gap-4 md:hidden">
-                <Twitter size={18} className="text-[#A1A1A1]" />
-                <Linkedin size={18} className="text-[#A1A1A1]" />
-                <Instagram size={18} className="text-[#A1A1A1]" />
+                {socialLinks.filter((s: any) => s.platform !== 'Email' && s.platform !== 'WhatsApp').map((item: any, idx: number) => (
+                    <a key={idx} href={item.url} className="text-[#A1A1A1]">
+                        {getSocialIcon(item.platform, item.icon_value)}
+                    </a>
+                ))}
              </div>
           </div>
         </div>

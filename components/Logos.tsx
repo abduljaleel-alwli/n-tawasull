@@ -1,6 +1,7 @@
 import React from 'react';
+import { useSettings } from '../context/SettingsContext';
 
-const logos = [
+const initialLogos = [
   "https://framerusercontent.com/images/99CutKVhaCpfKyyx4QDQTOjqoFw.png",
   "https://framerusercontent.com/images/SntGnaXbfmd4SDpZt5NbUpqoMY.png",
   "https://framerusercontent.com/images/aq47127VvLe0RHaHMHA2SPfBywU.png",
@@ -11,6 +12,15 @@ const logos = [
 ];
 
 const Logos: React.FC = () => {
+  const { getSetting } = useSettings();
+  const clientsData = getSetting('partner.items', []);
+  const badge = getSetting('partner.badge', 'عملأنا');
+  
+  // Handle if data comes as objects with image property or strings
+  const logos = Array.isArray(clientsData) && clientsData.length > 0 
+    ? clientsData.map((c: any) => typeof c === 'string' ? c : c.image) 
+    : initialLogos;
+
   return (
     <section className="py-20 border-y border-black/6 overflow-hidden relative" dir="rtl">
       <div className="max-w-[1400px] mx-auto px-6 md:px-12 flex flex-row items-center gap-10">
@@ -18,7 +28,7 @@ const Logos: React.FC = () => {
         {/* ملصق العنوان الجانبي - ثابت في اليمين */}
           <div className="reveal inline-flex items-center gap-2 bg-primary px-4 py-2.5 rounded-[25px] shadow-lg" style={{ transitionDelay: '0ms' }}>
             <span className="text-secondary font-black text-[12px] tracking-tight">//</span>
-            <span className="text-white font-black text-[12px] tracking-tight uppercase">عملأنا</span>
+            <span className="text-white font-black text-[12px] tracking-tight uppercase">{badge}</span>
             <span className="text-secondary font-black text-[12px] tracking-tight">//</span>
           </div>
         
@@ -30,7 +40,7 @@ const Logos: React.FC = () => {
           <div className="marquee-wrapper">
             {/* Group 1 */}
             <div className="marquee-group">
-              {logos.map((logo, idx) => (
+              {logos.map((logo: string, idx: number) => (
                 <div key={`g1-${idx}`} className="logo-item">
                   <img 
                     src={logo} 
@@ -43,7 +53,7 @@ const Logos: React.FC = () => {
             
             {/* Group 2 (Duplicate for loop) */}
             <div className="marquee-group" aria-hidden="true">
-              {logos.map((logo, idx) => (
+              {logos.map((logo: string, idx: number) => (
                 <div key={`g2-${idx}`} className="logo-item">
                   <img 
                     src={logo} 

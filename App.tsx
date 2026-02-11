@@ -10,8 +10,10 @@ import FAQ from './components/FAQ';
 import Contact from './components/Contact';
 import Footer from './components/Footer';
 import ProjectDetail from './components/ProjectDetail';
+import { useSettings } from './context/SettingsContext';
+import { getFileUrl } from './utils/api';
 
-const workItems = [
+const initialWorkItems = [
   { id: 1, title: "هوية بصرية لشركة تقنية", category: "تصميم وإبداع", image: "https://images.unsplash.com/photo-1572044162444-ad60f128bdea?auto=format&fit=crop&q=80&w=1200" },
   { id: 2, title: "حملة تسويقية لمطعم فاخر", category: "إدارة حملات ممولة", image: "https://images.unsplash.com/photo-1555396273-367ea4eb4db5?auto=format&fit=crop&q=80&w=1200" },
   { id: 3, title: "تطوير متجر سلة متكامل", category: "حلول رقمية", image: "https://images.unsplash.com/photo-1556742044-3c52d6e88c62?auto=format&fit=crop&q=80&w=1200" },
@@ -23,6 +25,33 @@ const workItems = [
 const App: React.FC = () => {
   const [selectedProject, setSelectedProject] = useState<any | null>(null);
   const [appState, setAppState] = useState<'home' | 'to-detail' | 'detail' | 'to-home'>('home');
+  const { getSetting } = useSettings();
+
+  // Dynamic Head Updates (Title & Favicon)
+  useEffect(() => {
+    // Update Title
+    const siteTitle = getSetting('site_name', 'نقطة تواصل | شريكك التسويقي الاستراتيجي');
+    if (document.title !== siteTitle) {
+      document.title = siteTitle;
+    }
+
+    // Update Favicon from Logo (using branding.logo as per API)
+    const logoPath = getSetting('branding.logo', null);
+    
+    if (logoPath) {
+      const fullIconUrl = getFileUrl(logoPath);
+      let link: HTMLLinkElement | null = document.querySelector("link[rel*='icon']");
+      if (!link) {
+        link = document.createElement('link');
+        link.rel = 'icon';
+        document.head.appendChild(link);
+      }
+      link.type = 'image/png';
+      link.href = fullIconUrl;
+    }
+  }, [getSetting]);
+
+  const workItems = getSetting('portfolio.items', initialWorkItems);
 
   // Particles.js Initialization with refined brand integration
   useEffect(() => {
