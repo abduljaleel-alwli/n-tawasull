@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { ArrowRight, Link as LinkIcon, MessageCircle, ArrowLeft, Loader2, Play } from 'lucide-react';
-import { fetchProjectById, ProjectItem } from '../utils/api';
+import { fetchProjectById, ProjectItem, ProjectVideo } from '../utils/api';
 
 interface ProjectDetailProps {
   project: ProjectItem;
@@ -9,6 +9,70 @@ interface ProjectDetailProps {
   onProjectSelect: (project: ProjectItem) => void;
   onBack: () => void;
 }
+
+/**
+ * Helper to convert standard video URLs to Embed URLs
+ */
+const getEmbedUrl = (url: string | null): string => {
+  if (!url) return '';
+  
+  // Handle YouTube
+  const ytMatch = url.match(/(?:youtu\.be\/|youtube\.com\/(?:.*v=|.*\/)([^&?]*))/);
+  if (ytMatch && ytMatch[1]) {
+    return `https://www.youtube.com/embed/${ytMatch[1]}`;
+  }
+
+  // Handle Vimeo
+  const vimeoMatch = url.match(/(?:vimeo\.com\/)(\d+)/);
+  if (vimeoMatch && vimeoMatch[1]) {
+    return `https://player.vimeo.com/video/${vimeoMatch[1]}`;
+  }
+
+  // Return original if it's already an embed link or unknown provider
+  return url;
+};
+
+/**
+ * Memoized Video Component to prevent re-renders on scroll
+ */
+const VideoCard = React.memo(({ video, index }: { video: ProjectVideo; index: number }) => {
+  const isIframeHtml = video.type === 'iframe' && video.iframe;
+  
+  const embedUrl = useMemo(() => {
+    if (!isIframeHtml && video.url) {
+      return getEmbedUrl(video.url);
+    }
+    return '';
+  }, [video.url, isIframeHtml]);
+
+  return (
+    <div 
+      className="group space-y-5 reveal transition-all duration-700" 
+      style={{ transitionDelay: `${400 + (index * 150)}ms` }}
+    >
+      <div className="relative rounded-[32px] overflow-hidden aspect-video bg-[#E5E5E5] shadow-2xl transition-transform duration-500 group-hover:-translate-y-2 border-4 border-white/50">
+        {isIframeHtml ? (
+            <div 
+                className="w-full h-full [&>iframe]:w-full [&>iframe]:h-full [&>iframe]:border-0"
+                dangerouslySetInnerHTML={{ __html: video.iframe || '' }}
+            />
+        ) : (
+            <iframe 
+              className="absolute inset-0 w-full h-full"
+              src={embedUrl} 
+              title={video.title || 'Video'}
+              frameBorder="0" 
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+              allowFullScreen
+            ></iframe>
+        )}
+      </div>
+      <h4 className="text-xl font-bold text-primary">{video.title}</h4>
+    </div>
+  );
+});
+
+VideoCard.displayName = 'VideoCard';
 
 const ProjectDetail: React.FC<ProjectDetailProps> = ({ project: initialProject, allProjects, onProjectSelect, onBack }) => {
   const cardShadow = "rgba(0, 0, 0, 0.1) 0px 4px 12px";
@@ -256,6 +320,11 @@ const ProjectDetail: React.FC<ProjectDetailProps> = ({ project: initialProject, 
                 rel="noopener noreferrer" 
                 className="group relative inline-flex items-center rounded-full pr-8 pl-1.5 py-1.5 transition-all duration-700 ease-[cubic-bezier(0.23,1,0.32,1)] active:scale-95 shadow-xl overflow-hidden bg-primary text-white"
                 data-cursor-text="تواصل"
+                data-analytics="true"
+                data-event="whatsapp_click"
+                data-entity="button"
+                data-id="whatsapp_project_detail"
+                data-source="project_detail"
               >
                 <div className="relative h-7 overflow-hidden ml-5 pointer-events-none">
                   <div className="flex flex-col transition-transform duration-700 ease-[cubic-bezier(0.23,1,0.32,1)] group-hover:-translate-y-1/2">
@@ -337,30 +406,9 @@ const ProjectDetail: React.FC<ProjectDetailProps> = ({ project: initialProject, 
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                  {activeProject.videos?.map((vid, idx) => {
-                     return (
-                        <div key={idx} className="group space-y-5 reveal transition-all duration-700" style={{ transitionDelay: `${400 + (idx*150)}ms` }}>
-                          <div className="relative rounded-[32px] overflow-hidden aspect-video bg-[#E5E5E5] shadow-2xl transition-transform duration-500 group-hover:-translate-y-2 border-4 border-white/50">
-                            {vid.iframe ? (
-                                <div 
-                                    className="w-full h-full [&>iframe]:w-full [&>iframe]:h-full"
-                                    dangerouslySetInnerHTML={{ __html: vid.iframe }}
-                                />
-                            ) : (
-                                <iframe 
-                                  className="absolute inset-0 w-full h-full"
-                                  src={vid.url || ''} 
-                                  title={vid.title}
-                                  frameBorder="0" 
-                                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
-                                  allowFullScreen
-                                ></iframe>
-                            )}
-                          </div>
-                          <h4 className="text-xl font-bold text-primary">{vid.title}</h4>
-                        </div>
-                     );
-                  })}
+                  {activeProject.videos?.map((vid, idx) => (
+                    <VideoCard key={`${activeProject.id}-vid-${idx}`} video={vid} index={idx} />
+                  ))}
                 </div>
              </section>
           )}

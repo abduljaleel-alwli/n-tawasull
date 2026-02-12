@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef } from 'react';
 import Navbar from './components/Navbar';
 import Hero from './components/Hero';
@@ -12,7 +13,7 @@ import Footer from './components/Footer';
 import ProjectDetail from './components/ProjectDetail';
 import Loader from './components/Loader';
 import { useSettings } from './context/SettingsContext';
-import { getFileUrl, fetchProjects, ProjectItem } from './utils/api';
+import { getFileUrl, fetchProjects, ProjectItem, trackAnalyticsEvent } from './utils/api';
 
 const App: React.FC = () => {
   const [selectedProject, setSelectedProject] = useState<any | null>(null);
@@ -21,6 +22,46 @@ const App: React.FC = () => {
   const [isAppReady, setIsAppReady] = useState(false);
   const { getSetting, settings } = useSettings();
   const scriptsInjectedRef = useRef(false);
+
+  // Global Event Listener for Analytics & Link Opening
+  useEffect(() => {
+    const handleGlobalClick = (e: MouseEvent) => {
+      const target = e.target as HTMLElement;
+      // Look for the closest element with data-analytics attribute
+      const analyticsEl = target.closest('[data-analytics]') as HTMLElement;
+
+      if (analyticsEl) {
+        // Prepare Payload
+        const payload = {
+            event: analyticsEl.dataset.event,
+            entity_type: analyticsEl.dataset.entity, // Maps to data-entity
+            entity_id: analyticsEl.dataset.id,       // Maps to data-id
+            source: analyticsEl.dataset.source,
+            page: window.location.pathname
+        };
+
+        // Send Analytics
+        trackAnalyticsEvent(payload);
+
+        // Ensure Link Opens in New Tab (Force behavior logic)
+        // If it's an anchor tag
+        if (analyticsEl.tagName === 'A') {
+             // Browser handles target="_blank" naturally, but we ensure the attributes are set in components.
+             // If for some reason dynamic JS navigation is used:
+             const href = (analyticsEl as HTMLAnchorElement).href;
+             if (href && !analyticsEl.hasAttribute('target')) {
+                 window.open(href, '_blank');
+             }
+        }
+      }
+    };
+
+    document.addEventListener('click', handleGlobalClick);
+
+    return () => {
+        document.removeEventListener('click', handleGlobalClick);
+    };
+  }, []);
 
   // Global Settings Effect: Colors, SEO, Favicon, Scripts
   useEffect(() => {

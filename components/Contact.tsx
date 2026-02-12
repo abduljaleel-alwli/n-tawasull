@@ -232,20 +232,23 @@ const Contact: React.FC = () => {
     }
   };
 
-  const ContactCard = ({ 
+  interface ContactCardProps extends React.AnchorHTMLAttributes<HTMLAnchorElement> {
+    icon: any;
+    label: string;
+    value: string;
+    delay: string;
+    href: string;
+    dots?: number;
+  }
+
+  const ContactCard: React.FC<ContactCardProps> = ({ 
     icon: Icon, 
     label, 
     value, 
     delay, 
     href, 
-    dots = 1 
-  }: { 
-    icon: any, 
-    label: string, 
-    value: string, 
-    delay: string, 
-    href: string,
-    dots?: number
+    dots = 1,
+    ...props
   }) => (
     <a 
       href={href}
@@ -258,6 +261,7 @@ const Contact: React.FC = () => {
         transitionTimingFunction: 'cubic-bezier(0.16, 1, 0.3, 1)'
       }}
       data-cursor-text="تواصل"
+      {...props}
     >
       <div className="flex justify-between items-start">
         <div className="w-16 h-16 rounded-2xl bg-white flex items-center justify-center text-primary group-hover:bg-primary group-hover:text-white group-hover:scale-110 transition-all duration-500 shadow-sm group-hover:shadow-xl">
@@ -310,6 +314,11 @@ const Contact: React.FC = () => {
                     delay="400ms" 
                     href={`mailto:${contactEmail}`}
                     dots={1}
+                    data-analytics="true"
+                    data-event="social_click"
+                    data-entity="link"
+                    data-id="email_contact"
+                    data-source="contact_section"
                 />
             </div>
             <ContactCard 
@@ -319,6 +328,11 @@ const Contact: React.FC = () => {
                 delay="500ms" 
                 href={`https://wa.me/${contactWhatsapp.replace(/\+/g, '').replace(/\s/g, '')}`}
                 dots={2}
+                data-analytics="true"
+                data-event="whatsapp_click"
+                data-entity="button"
+                data-id="whatsapp_contact"
+                data-source="contact_section"
             />
             <ContactCard 
                 icon={Phone} 
@@ -327,6 +341,11 @@ const Contact: React.FC = () => {
                 delay="600ms" 
                 href={`tel:${contactPhone.replace(/\s/g, '')}`}
                 dots={3}
+                data-analytics="true"
+                data-event="social_click"
+                data-entity="button"
+                data-id="phone_contact"
+                data-source="contact_section"
             />
           </div>
         </div>

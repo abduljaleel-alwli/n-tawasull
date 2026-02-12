@@ -4,9 +4,20 @@ import { ArrowLeft, Twitter, Linkedin, Instagram, Globe, Shield, FileText, Mail,
 import { useSettings } from '../context/SettingsContext';
 import { getFileUrl, subscribeNewsletter } from '../utils/api';
 
-const RollingLink: React.FC<{ text: string; href: string; icon?: React.ReactNode }> = ({ text, href, icon }) => {
+interface RollingLinkProps extends React.AnchorHTMLAttributes<HTMLAnchorElement> {
+  text: string;
+  href: string;
+  icon?: React.ReactNode;
+}
+
+const RollingLink: React.FC<RollingLinkProps> = ({ text, href, icon, ...props }) => {
   return (
-    <a href={href} className="group relative block overflow-hidden py-1 w-full sm:w-fit" data-cursor-text="فتح">
+    <a 
+      href={href} 
+      className="group relative block overflow-hidden py-1 w-full sm:w-fit" 
+      data-cursor-text="فتح"
+      {...props}
+    >
       <div className="relative h-8 overflow-hidden pointer-events-none">
         <div className="flex flex-col transition-transform duration-700 ease-[cubic-bezier(0.23,1,0.32,1)] group-hover:-translate-y-1/2">
           <span className="h-8 text-[16px] sm:text-[18px] font-black text-[#A1A1A1] group-hover:text-white leading-8 whitespace-nowrap flex items-center gap-3 transition-colors duration-300 justify-start">
@@ -175,7 +186,17 @@ const Footer: React.FC = () => {
               </div>
               
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                 <a href={`mailto:${contactEmail}`} className="flex items-center gap-3 text-white group cursor-pointer bg-white/5 hover:bg-white/10 p-4 rounded-2xl transition-all duration-500" data-cursor-text="راسلنا">
+                 <a 
+                    href={`mailto:${contactEmail}`} 
+                    className="flex items-center gap-3 text-white group cursor-pointer bg-white/5 hover:bg-white/10 p-4 rounded-2xl transition-all duration-500" 
+                    data-cursor-text="راسلنا"
+                    data-analytics="true"
+                    data-event="social_click"
+                    data-entity="link"
+                    data-id="email_link"
+                    data-source="footer"
+                    target="_blank"
+                 >
                     <div className="w-10 h-10 rounded-full bg-secondary/10 flex items-center justify-center group-hover:bg-secondary transition-all duration-500 shrink-0">
                       <Mail size={16} className="text-secondary group-hover:text-primary" />
                     </div>
@@ -238,7 +259,13 @@ const Footer: React.FC = () => {
                     <RollingLink 
                         text={item.platform} 
                         href={item.url} 
-                        icon={getSocialIcon(item.platform, item.icon_value)} 
+                        icon={getSocialIcon(item.platform, item.icon_value)}
+                        data-analytics="true"
+                        data-event="social_click"
+                        data-entity="link"
+                        data-id={item.platform.toLowerCase().replace(/\s/g, '_')}
+                        data-source="footer"
+                        target="_blank"
                     />
                   </li>
                 ))}
@@ -269,7 +296,17 @@ const Footer: React.FC = () => {
              {/* Simple Social Icons for mobile quick access */}
              <div className="flex gap-4 md:hidden">
                 {socialLinks.filter((s: any) => s.platform !== 'Email' && s.platform !== 'WhatsApp').map((item: any, idx: number) => (
-                    <a key={idx} href={item.url} className="text-[#A1A1A1]">
+                    <a 
+                        key={idx} 
+                        href={item.url} 
+                        className="text-[#A1A1A1]"
+                        data-analytics="true"
+                        data-event="social_click"
+                        data-entity="link"
+                        data-id={item.platform.toLowerCase().replace(/\s/g, '_')}
+                        data-source="footer_mobile"
+                        target="_blank"
+                    >
                         {getSocialIcon(item.platform, item.icon_value)}
                     </a>
                 ))}
