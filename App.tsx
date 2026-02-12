@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import Navbar from './components/Navbar';
 import Hero from './components/Hero';
 import Services from './components/Services';
@@ -18,21 +18,53 @@ const App: React.FC = () => {
   const [selectedProject, setSelectedProject] = useState<any | null>(null);
   const [appState, setAppState] = useState<'home' | 'to-detail' | 'detail' | 'to-home'>('home');
   const [workItems, setWorkItems] = useState<ProjectItem[]>([]);
-  const { getSetting } = useSettings();
+  const { getSetting, settings } = useSettings();
+  const scriptsInjectedRef = useRef(false);
 
-  // Dynamic Head Updates (Title & Favicon)
+  // Global Settings Effect: Colors, SEO, Favicon, Scripts
   useEffect(() => {
-    // Update Title
-    const siteTitle = getSetting('site_name', 'نقطة تواصل | شريكك التسويقي الاستراتيجي');
+    // 1. Dynamic Colors
+    // Mapping API keys to CSS variables based on hex code matches
+    // API: colors.secondary (#203C71) -> CSS: --primary
+    // API: colors.accent (#EF7F17)    -> CSS: --secondary
+    // API: colors.background          -> CSS: --background
+    const primaryColor = getSetting('colors.secondary', '#203C71');
+    const secondaryColor = getSetting('colors.accent', '#EF7F17');
+    const backgroundColor = getSetting('colors.background', '#f0f0f0');
+
+    const root = document.documentElement;
+    root.style.setProperty('--primary', primaryColor);
+    root.style.setProperty('--secondary', secondaryColor);
+    root.style.setProperty('--background', backgroundColor);
+
+    // 2. SEO & Head Elements
+    const siteTitle = getSetting('seo.meta_title', getSetting('site_name', 'نقطة تواصل | شريكك التسويقي الاستراتيجي'));
+    const metaDesc = getSetting('seo.meta_description', getSetting('site_description', 'وكالة تسويق إبداعية'));
+    const metaKeywords = getSetting('seo.keywords', '');
+
     if (document.title !== siteTitle) {
       document.title = siteTitle;
     }
 
-    // Update Favicon from Logo (using branding.logo as per API)
-    const logoPath = getSetting('branding.logo', null);
+    const setMetaTag = (name: string, content: string) => {
+        let meta = document.querySelector(`meta[name="${name}"]`);
+        if (!meta) {
+            meta = document.createElement('meta');
+            meta.setAttribute('name', name);
+            document.head.appendChild(meta);
+        }
+        meta.setAttribute('content', content);
+    };
+
+    if (metaDesc) setMetaTag('description', metaDesc);
+    if (metaKeywords) setMetaTag('keywords', metaKeywords);
+
+    // 3. Favicon
+    // Check branding.favicon first, fallback to branding.logo
+    const faviconPath = getSetting('branding.favicon', null) || getSetting('branding.logo', null);
     
-    if (logoPath) {
-      const fullIconUrl = getFileUrl(logoPath);
+    if (faviconPath) {
+      const fullIconUrl = getFileUrl(faviconPath);
       let link: HTMLLinkElement | null = document.querySelector("link[rel*='icon']");
       if (!link) {
         link = document.createElement('link');
@@ -42,7 +74,36 @@ const App: React.FC = () => {
       link.type = 'image/png';
       link.href = fullIconUrl;
     }
-  }, [getSetting]);
+
+    // 4. Inject Scripts (Once when settings are loaded)
+    if (!scriptsInjectedRef.current && Object.keys(settings).length > 0) {
+        const headScripts = getSetting('scripts.head', '');
+        const footerScripts = getSetting('scripts.footer', '');
+
+        const inject = (html: string, target: HTMLElement) => {
+            if (!html) return;
+            const temp = document.createElement('div');
+            temp.innerHTML = html;
+            const scripts = temp.querySelectorAll('script');
+            scripts.forEach(oldScript => {
+                const newScript = document.createElement('script');
+                Array.from(oldScript.attributes).forEach(attr => newScript.setAttribute(attr.name, attr.value));
+                if (oldScript.src) {
+                    newScript.src = oldScript.src;
+                } else {
+                    newScript.textContent = oldScript.textContent;
+                }
+                target.appendChild(newScript);
+            });
+        };
+
+        if (headScripts) inject(headScripts, document.head);
+        if (footerScripts) inject(footerScripts, document.body);
+        
+        scriptsInjectedRef.current = true;
+    }
+
+  }, [settings, getSetting]);
 
   // Fetch Projects from API
   useEffect(() => {
@@ -55,7 +116,7 @@ const App: React.FC = () => {
     return () => { isMounted = false; };
   }, []);
 
-  // Particles.js Initialization with refined brand integration
+  // Particles.js Initialization
   useEffect(() => {
     // @ts-ignore
     if (typeof particlesJS !== 'undefined') {
@@ -110,7 +171,7 @@ const App: React.FC = () => {
     return () => {
       revealElements.forEach((el) => observer.unobserve(el));
     };
-  }, [appState, selectedProject?.id, workItems]); // Add workItems dependency
+  }, [appState, selectedProject?.id, workItems]); 
 
   const handleProjectClick = (project: any) => {
     if (appState === 'detail') {
