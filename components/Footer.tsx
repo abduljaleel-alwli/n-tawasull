@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { ArrowLeft, Twitter, Linkedin, Instagram, Globe, Shield, FileText, Mail, CheckCircle2, Facebook, X, AlertCircle } from 'lucide-react';
+import { ArrowLeft, Twitter, Linkedin, Instagram, Globe, Mail, CheckCircle2, Facebook, AlertCircle } from 'lucide-react';
 import { useSettings } from '../context/SettingsContext';
 import { getFileUrl, subscribeNewsletter } from '../utils/api';
 
@@ -219,7 +219,7 @@ const Footer: React.FC = () => {
           </div>
 
           {/* Links Columns */}
-          <div className="lg:col-span-7 grid grid-cols-2 sm:grid-cols-3 gap-10 sm:gap-12 text-right">
+          <div className="lg:col-span-7 grid grid-cols-2 gap-10 sm:gap-12 text-right">
             <div className="space-y-8">
               <h5 className="text-[11px] font-black uppercase tracking-[0.2em] text-secondary border-b border-white/5 pb-4">/ التنقل</h5>
               <ul className="space-y-3 flex flex-col items-start">
@@ -237,21 +237,6 @@ const Footer: React.FC = () => {
             </div>
 
             <div className="space-y-8">
-              <h5 className="text-[11px] font-black uppercase tracking-[0.2em] text-secondary border-b border-white/5 pb-4">/ المصادر</h5>
-              <ul className="space-y-3 flex flex-col items-start">
-                {[
-                  { name: 'سياسة الخصوصية', id: 'privacy', icon: <Shield size={16} /> },
-                  { name: 'شروط الخدمة', id: 'terms', icon: <FileText size={16} /> },
-                  { name: 'المدونة', id: 'blog', icon: <Globe size={16} /> }
-                ].map((item) => (
-                  <li key={item.id} className="w-full">
-                    <RollingLink text={item.name} href="#" icon={item.icon} />
-                  </li>
-                ))}
-              </ul>
-            </div>
-
-            <div className="space-y-8 col-span-2 sm:col-span-1">
               <h5 className="text-[11px] font-black uppercase tracking-[0.2em] text-secondary border-b border-white/5 pb-4">/ التواصل</h5>
               <ul className="space-y-3 flex flex-col items-start">
                 {socialLinks.filter((s: any) => s.platform !== 'Email' && s.platform !== 'WhatsApp').map((item: any, idx: number) => (
@@ -277,10 +262,21 @@ const Footer: React.FC = () => {
         {/* Bottom Bar */}
         <div className="pt-10 border-t border-white/5 flex flex-col md:flex-row justify-between items-center gap-8 text-center md:text-right">
           <div className="flex flex-col md:flex-row items-center gap-4 md:gap-8">
-            <div className="flex items-center gap-3 text-[#A1A1A1] text-[14px] font-bold">
+            <div className="flex flex-col sm:flex-row items-center gap-2 sm:gap-4 text-[#A1A1A1] text-[14px] font-bold">
                <span className="opacity-50">© {new Date().getFullYear()} {siteName}.</span>
-               <div className="w-[1px] h-4 bg-white/10 hidden md:block"></div>
-               <span className="text-secondary/80">صنع بشغف بواسطة Shamll tech</span>
+               <div className="w-[1px] h-4 bg-white/10 hidden sm:block"></div>
+               <div className="flex items-center gap-1.5">
+                  <span className="opacity-50">صنع بشغف بواسطة</span>
+                  <a 
+                    href="https://api.whatsapp.com/send/?phone=967737140316" 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="text-secondary hover:text-white transition-colors duration-300 border-b border-transparent hover:border-white/50 pb-0.5"
+                    data-cursor-text="شامل تك"
+                  >
+                    Shamll tech
+                  </a>
+               </div>
             </div>
             <div className="text-[#64748b] text-[12px] font-bold uppercase tracking-widest hidden lg:block">
                {location}
