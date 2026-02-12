@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef } from 'react';
 import { ChevronLeft } from 'lucide-react';
 import { useSettings } from '../context/SettingsContext';
@@ -8,6 +9,7 @@ const Navbar: React.FC = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [currentSlide, setCurrentSlide] = useState(0);
   const [hasOpenedBefore, setHasOpenedBefore] = useState(false);
+  const [isVisible, setIsVisible] = useState(false);
 
   const { getSetting } = useSettings();
   const logoPath = getSetting('branding.logo', null);
@@ -20,6 +22,9 @@ const Navbar: React.FC = () => {
   ];
 
   useEffect(() => {
+    // تفعيل تأثير الظهور بعد وقت قصير من التركيب
+    const timer = setTimeout(() => setIsVisible(true), 50);
+
     const handleScroll = () => setScrolled(window.scrollY > 20);
     window.addEventListener('scroll', handleScroll);
     
@@ -31,6 +36,7 @@ const Navbar: React.FC = () => {
     }
     
     return () => {
+      clearTimeout(timer);
       window.removeEventListener('scroll', handleScroll);
       clearInterval(interval);
     };
@@ -53,7 +59,12 @@ const Navbar: React.FC = () => {
 
   return (
     <>
-      <nav className={`fixed top-0 left-0 right-0 z-[100] transition-all duration-500 ease-[cubic-bezier(0.23,1,0.32,1)] animate-entrance-down ${scrolled ? 'py-4 md:py-6' : 'py-6 md:py-8'}`}>
+      <nav 
+        className={`fixed top-0 left-0 right-0 z-[100] transition-all duration-[1200ms] ease-[cubic-bezier(0.16,1,0.3,1)] ${isVisible ? 'translate-y-0 opacity-100' : '-translate-y-full opacity-0'} ${scrolled ? 'py-4 md:py-6' : 'py-6 md:py-8'}`}
+        style={{
+          willChange: 'transform, opacity'
+        }}
+      >
         <div className="px-6 md:px-12 max-w-[1350px] mx-auto flex justify-between items-center">
           
           <div className="flex items-center gap-2">

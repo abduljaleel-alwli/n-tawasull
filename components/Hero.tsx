@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { ArrowLeft, ChevronDown, Star } from 'lucide-react';
 import { useSettings } from '../context/SettingsContext';
@@ -44,7 +45,7 @@ const AnimatedButton: React.FC<AnimatedButtonProps> = ({
   );
 };
 
-const Hero: React.FC = () => {
+const Hero: React.FC<{ isReady?: boolean }> = ({ isReady = false }) => {
   const { getSetting } = useSettings();
   
   const title = getSetting('hero.title', 'الحل التسويقي الاستراتيجي الأول في المملكة');
@@ -80,26 +81,31 @@ const Hero: React.FC = () => {
   const column1 = processedImages.slice(0, midPoint);
   const column2 = processedImages.slice(midPoint);
 
+  // Helper function to manage entrance animation classes
+  const getAnimClass = (animation: string, delayClass: string) => {
+    return isReady ? `${animation} ${delayClass}` : 'opacity-0';
+  };
+
   return (
     <div className="relative pb-16 px-6 md:px-12 max-w-[1350px] mx-auto min-h-screen flex flex-col justify-center" dir="rtl">
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-20 items-center relative pb-20">
         
         <div className="lg:col-span-7 flex flex-col items-start text-right pt-[150px] md:pt-32 z-10">
-          <div className="inline-flex items-center gap-2 bg-primary px-5 py-2.5 rounded-full mb-8 shadow-xl animate-entrance-up delay-1000 hover:scale-105 transition-transform duration-300">
+          <div className={`inline-flex items-center gap-2 bg-primary px-5 py-2.5 rounded-full mb-8 shadow-xl hover:scale-105 transition-transform duration-300 ${getAnimClass('animate-entrance-up', 'delay-1000')}`}>
             <span className="text-secondary font-black text-[11px]">//</span>
             <span className="text-white text-[11px] font-black tracking-widest uppercase">{badge}</span>
             <span className="text-secondary font-black text-[11px]">//</span>
           </div>
 
-          <h1 className="text-[32px] md:text-[44px] lg:text-[56px] font-black leading-[1.3] tracking-[-0.01em] mb-8 text-balance animate-entrance-up delay-1200">
+          <h1 className={`text-[32px] md:text-[44px] lg:text-[56px] font-black leading-[1.3] tracking-[-0.01em] mb-8 text-balance ${getAnimClass('animate-entrance-up', 'delay-1200')}`}>
              {title}
           </h1>
 
-          <p className="text-base md:text-lg text-[#6B6B6B] font-medium mb-10 max-w-xl leading-relaxed animate-entrance-up delay-1400">
+          <p className={`text-base md:text-lg text-[#6B6B6B] font-medium mb-10 max-w-xl leading-relaxed ${getAnimClass('animate-entrance-up', 'delay-1400')}`}>
             {description}
           </p>
 
-          <div className="flex flex-row sm:flex-wrap items-center gap-4 mb-12 sm:mb-16 animate-entrance-up delay-1600 w-full sm:w-auto">
+          <div className={`flex flex-row sm:flex-wrap items-center gap-4 mb-12 sm:mb-16 w-full sm:w-auto ${getAnimClass('animate-entrance-up', 'delay-1600')}`}>
             {Array.isArray(ctas) && ctas.map((cta: any, idx: number) => (
                 <AnimatedButton 
                     key={idx} 
@@ -110,7 +116,7 @@ const Hero: React.FC = () => {
             ))}
           </div>
 
-          <div className="flex flex-row items-center gap-5 animate-entrance-up delay-1800">
+          <div className={`flex flex-row items-center gap-5 ${getAnimClass('animate-entrance-up', 'delay-1800')}`}>
             <div className="flex -space-x-4 space-x-reverse shrink-0">
                 {[1, 2, 3, 4].map((i) => (
                     <div key={i} className="w-12 h-12 md:w-14 md:h-14 rounded-full border-[3px] border-background overflow-hidden shadow-lg bg-gray-200 relative z-0 hover:z-10 transition-transform hover:scale-110 cursor-pointer" data-cursor-text="عملاءنا">
@@ -140,7 +146,7 @@ const Hero: React.FC = () => {
 
         <div
           data-cursor-text="رؤيتنا"
-          className="hero-image-grid-container lg:col-span-5 grid grid-cols-2 gap-3 h-[500px] sm:h-[600px] md:h-[780px] overflow-hidden relative animate-entrance-scale delay-2200 pt-0 mt-8 lg:mt-0"
+          className={`hero-image-grid-container lg:col-span-5 grid grid-cols-2 gap-3 h-[500px] sm:h-[600px] md:h-[780px] overflow-hidden relative pt-0 mt-8 lg:mt-0 ${getAnimClass('animate-entrance-scale', 'delay-2200')}`}
         >
           <div className="space-y-2 animate-scroll-up">
             {[...column1, ...column1, ...column1].map((item, idx) => (
@@ -160,7 +166,7 @@ const Hero: React.FC = () => {
       </div>
 
       {showScrollIndicator && (
-        <div className="absolute bottom-8 left-0 right-0 mx-auto w-fit flex flex-col items-center gap-3 animate-entrance-up delay-2800 pointer-events-none">
+        <div className={`absolute bottom-8 left-0 right-0 mx-auto w-fit flex flex-col items-center gap-3 pointer-events-none ${getAnimClass('animate-entrance-up', 'delay-2800')}`}>
             <span className="text-[10px] font-black text-[#999999] tracking-[0.2em] uppercase">{scrollText}</span>
             <div className="relative w-6 h-10 rounded-full border-2 border-[#D1D1D1] flex justify-center p-1 overflow-hidden">
                <div className="w-1 h-2 bg-secondary rounded-full animate-scroll-indicator"></div>

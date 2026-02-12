@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef } from 'react';
 import Navbar from './components/Navbar';
 import Hero from './components/Hero';
@@ -11,6 +10,7 @@ import FAQ from './components/FAQ';
 import Contact from './components/Contact';
 import Footer from './components/Footer';
 import ProjectDetail from './components/ProjectDetail';
+import Loader from './components/Loader';
 import { useSettings } from './context/SettingsContext';
 import { getFileUrl, fetchProjects, ProjectItem } from './utils/api';
 
@@ -18,16 +18,12 @@ const App: React.FC = () => {
   const [selectedProject, setSelectedProject] = useState<any | null>(null);
   const [appState, setAppState] = useState<'home' | 'to-detail' | 'detail' | 'to-home'>('home');
   const [workItems, setWorkItems] = useState<ProjectItem[]>([]);
+  const [isAppReady, setIsAppReady] = useState(false);
   const { getSetting, settings } = useSettings();
   const scriptsInjectedRef = useRef(false);
 
   // Global Settings Effect: Colors, SEO, Favicon, Scripts
   useEffect(() => {
-    // 1. Dynamic Colors
-    // Mapping API keys to CSS variables based on hex code matches
-    // API: colors.secondary (#203C71) -> CSS: --primary
-    // API: colors.accent (#EF7F17)    -> CSS: --secondary
-    // API: colors.background          -> CSS: --background
     const primaryColor = getSetting('colors.secondary', '#203C71');
     const secondaryColor = getSetting('colors.accent', '#EF7F17');
     const backgroundColor = getSetting('colors.background', '#f0f0f0');
@@ -37,7 +33,6 @@ const App: React.FC = () => {
     root.style.setProperty('--secondary', secondaryColor);
     root.style.setProperty('--background', backgroundColor);
 
-    // 2. SEO & Head Elements
     const siteTitle = getSetting('seo.meta_title', getSetting('site_name', 'نقطة تواصل | شريكك التسويقي الاستراتيجي'));
     const metaDesc = getSetting('seo.meta_description', getSetting('site_description', 'وكالة تسويق إبداعية'));
     const metaKeywords = getSetting('seo.keywords', '');
@@ -59,8 +54,6 @@ const App: React.FC = () => {
     if (metaDesc) setMetaTag('description', metaDesc);
     if (metaKeywords) setMetaTag('keywords', metaKeywords);
 
-    // 3. Favicon
-    // Check branding.favicon first, fallback to branding.logo
     const faviconPath = getSetting('branding.favicon', null) || getSetting('branding.logo', null);
     
     if (faviconPath) {
@@ -75,7 +68,6 @@ const App: React.FC = () => {
       link.href = fullIconUrl;
     }
 
-    // 4. Inject Scripts (Once when settings are loaded)
     if (!scriptsInjectedRef.current && Object.keys(settings).length > 0) {
         const headScripts = getSetting('scripts.head', '');
         const footerScripts = getSetting('scripts.footer', '');
@@ -149,6 +141,8 @@ const App: React.FC = () => {
 
   // Scroll Reveal Observer Logic
   useEffect(() => {
+    if (!isAppReady) return;
+
     const observerOptions = {
       root: null,
       rootMargin: '0px 0px -20px 0px',
@@ -171,7 +165,7 @@ const App: React.FC = () => {
     return () => {
       revealElements.forEach((el) => observer.unobserve(el));
     };
-  }, [appState, selectedProject?.id, workItems]); 
+  }, [appState, selectedProject?.id, workItems, isAppReady]); 
 
   const handleProjectClick = (project: any) => {
     if (appState === 'detail') {
@@ -197,11 +191,19 @@ const App: React.FC = () => {
 
   return (
     <div className="min-h-screen relative">
-      <div className={`fixed top-0 left-0 right-0 z-[200] dramatic-transition ${appState !== 'home' ? 'translate-y-[-100%] opacity-0 pointer-events-none' : 'translate-y-0 opacity-100'}`}>
+      <Loader onFinished={() => setIsAppReady(true)} />
+
+      {/* Navbar Container with Slide Down Effect */}
+      <div 
+        className={`fixed top-0 left-0 right-0 z-[200] dramatic-transition 
+          ${appState !== 'home' || !isAppReady ? 'translate-y-[-100%] opacity-0 pointer-events-none' : 'translate-y-0 opacity-100'}
+        `}
+        style={{ transitionDelay: isAppReady ? '400ms' : '0ms' }}
+      >
         <Navbar />
       </div>
 
-      <main className="relative">
+      <main className={`relative transition-opacity duration-1000 ${isAppReady ? 'opacity-100' : 'opacity-0'}`}>
         <div 
           className={`dramatic-transition 
             ${appState === 'home' ? 'home-visible' : ''} 
@@ -221,7 +223,7 @@ const App: React.FC = () => {
               }
           }}
         >
-          <section id="home"><Hero /></section>
+          <section id="home"><Hero isReady={isAppReady} /></section>
           <section id="services"><Services /></section>
           <section id="benefits"><Benefits /></section>
           <section id="work"><SelectedWork projects={workItems} onProjectClick={handleProjectClick} /></section>
