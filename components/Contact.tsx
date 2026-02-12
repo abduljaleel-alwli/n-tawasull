@@ -1,8 +1,10 @@
-import React, { useState, useRef } from 'react';
-import { Mail, Phone, MessageSquare, CheckCircle, Loader2, ArrowLeft, Upload, Check } from 'lucide-react';
-import { useSettings } from '../context/SettingsContext';
 
-const serviceOptions = [
+import React, { useState, useRef, useEffect } from 'react';
+import { Mail, Phone, MessageSquare, CheckCircle, Loader2, ArrowLeft, Upload, Check, AlertCircle } from 'lucide-react';
+import { useSettings } from '../context/SettingsContext';
+import { fetchServices, sendContactMessage } from '../utils/api';
+
+const initialServiceOptions = [
   "إدارة حسابات التواصل الاجتماعي",
   "تحسين محركات البحث وخرائط قوقل",
   "اشتراك واتساب للأعمال",
@@ -19,12 +21,18 @@ const projectTypes = [
 ];
 
 const Contact: React.FC = () => {
+  const [serviceOptions, setServiceOptions] = useState<string[]>(initialServiceOptions);
   const [selectedServices, setSelectedServices] = useState<string[]>([]);
   const [projectType, setProjectType] = useState<string>('');
   const [fileName, setFileName] = useState<string>('');
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const formRef = useRef<HTMLFormElement>(null);
   
   const { getSetting } = useSettings();
   
@@ -38,7 +46,29 @@ const Contact: React.FC = () => {
 
   const cardShadow = "rgba(0, 0, 0, 0.08) 0px 0.602187px 0.602187px -0.916667px, rgba(0, 0, 0, 0.08) 0px 2.28853px 2.28853px -1.83333px, rgba(0, 0, 0, 0.07) 0px 10px 10px -2.75px";
 
+  // Fetch Dynamic Services
+  useEffect(() => {
+    let isMounted = true;
+    const loadServices = async () => {
+      try {
+        const services = await fetchServices();
+        if (isMounted && services.length > 0) {
+          // Extract unique titles or use as provided
+          const titles = Array.from(new Set(services.map(s => s.title)));
+          if (titles.length > 0) {
+            setServiceOptions(titles);
+          }
+        }
+      } catch (err) {
+        // Silently fail to default
+      }
+    };
+    loadServices();
+    return () => { isMounted = false; };
+  }, []);
+
   const toggleService = (service: string) => {
+    setErrorMessage(null); // Clear error on interaction
     setSelectedServices(prev => 
       prev.includes(service) 
         ? prev.filter(s => s !== service) 
@@ -48,27 +78,78 @@ const Contact: React.FC = () => {
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
-      setFileName(e.target.files[0].name);
+      const file = e.target.files[0];
+      // Basic validation (example: size < 10MB)
+      if (file.size > 10 * 1024 * 1024) {
+        setErrorMessage('حجم الملف كبير جداً. الحد الأقصى 10 ميجابايت.');
+        return;
+      }
+      setFileName(file.name);
+      setSelectedFile(file);
+      setErrorMessage(null);
     }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setErrorMessage(null);
+
+    // Manual Validation
+    if (selectedServices.length === 0) {
+      setErrorMessage('الرجاء اختيار خدمة واحدة على الأقل.');
+      return;
+    }
+    if (!projectType) {
+      setErrorMessage('الرجاء اختيار نوع المشروع.');
+      return;
+    }
+
     setIsSubmitting(true);
     
-    // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 2000));
-    
-    setIsSubmitting(false);
-    setShowSuccess(true);
-    
-    // Reset success message after 5 seconds
-    setTimeout(() => {
-      setShowSuccess(false);
-      setSelectedServices([]);
-      setProjectType('');
-      setFileName('');
-    }, 5000);
+    try {
+      const formData = new FormData();
+      const form = e.target as HTMLFormElement;
+      
+      // Basic Fields
+      formData.append('name', (form.elements.namedItem('name') as HTMLInputElement).value);
+      formData.append('email', (form.elements.namedItem('email') as HTMLInputElement).value);
+      formData.append('phone', (form.elements.namedItem('phone') as HTMLInputElement).value || '');
+      formData.append('message', (form.elements.namedItem('message') as HTMLTextAreaElement).value);
+      
+      // Selectors
+      formData.append('project_type', projectType);
+      
+      // Array Fields (Services)
+      selectedServices.forEach(service => {
+        formData.append('services[]', service);
+      });
+
+      // File
+      if (selectedFile) {
+        formData.append('attachment', selectedFile);
+      }
+
+      await sendContactMessage(formData);
+      
+      setShowSuccess(true);
+      
+      // Reset Form
+      setTimeout(() => {
+        setShowSuccess(false);
+        setSelectedServices([]);
+        setProjectType('');
+        setFileName('');
+        setSelectedFile(null);
+        if (formRef.current) formRef.current.reset();
+      }, 5000);
+
+    } catch (error: any) {
+      // Handle API Errors
+      const msg = error.message || 'حدث خطأ أثناء الإرسال. يرجى المحاولة مرة أخرى.';
+      setErrorMessage(msg);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const ContactCard = ({ 
@@ -195,14 +276,14 @@ const Contact: React.FC = () => {
             </button>
           </div>
 
-          <form className="flex flex-col gap-8" onSubmit={handleSubmit}>
+          <form ref={formRef} className="flex flex-col gap-8" onSubmit={handleSubmit}>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
               <div className="flex flex-col gap-3">
                 <p className="text-[14px] font-black text-white/40 tracking-widest">الاسم بالكامل*</p>
                 <input 
                   type="text" 
                   required
-                  name="Name"
+                  name="name"
                   placeholder="اسمك الكريم" 
                   className="w-full bg-white/5 border border-white/10 rounded-[16px] px-6 py-5 text-[1rem] font-medium text-white placeholder-white/20 focus:outline-none focus:border-secondary focus:bg-white/10 transition-all"
                   data-cursor-text="اكتب الاسم" 
@@ -213,7 +294,7 @@ const Contact: React.FC = () => {
                 <p className="text-[14px] font-black text-white/40 tracking-widest">رقم الجوال (اختياري)</p>
                 <input 
                   type="tel" 
-                  name="Phone"
+                  name="phone"
                   placeholder="05xxxxxxxx" 
                   className="w-full bg-white/5 border border-white/10 rounded-[16px] px-6 py-5 text-[1rem] font-medium text-white placeholder-white/20 focus:outline-none focus:border-secondary focus:bg-white/10 transition-all text-right" 
                   data-cursor-text="اكتب الرقم"
@@ -226,7 +307,7 @@ const Contact: React.FC = () => {
               <input 
                 type="email" 
                 required
-                name="Email"
+                name="email"
                 placeholder="بريدك الإلكتروني" 
                 className="w-full bg-white/5 border border-white/10 rounded-[16px] px-6 py-5 text-[1rem] font-medium text-white placeholder-white/20 focus:outline-none focus:border-secondary focus:bg-white/10 transition-all" 
                 data-cursor-text="اكتب البريد"
@@ -258,7 +339,10 @@ const Contact: React.FC = () => {
                   <button
                     key={type.id}
                     type="button"
-                    onClick={() => setProjectType(type.id)}
+                    onClick={() => {
+                        setProjectType(type.id);
+                        setErrorMessage(null);
+                    }}
                     className={`py-4 rounded-[16px] border transition-all duration-300 text-[11px] font-black uppercase tracking-widest ${projectType === type.id ? 'bg-secondary border-secondary text-white shadow-lg' : 'bg-white/5 border-white/10 text-white/60 hover:bg-white/10'}`}
                     data-cursor-text="اختيار"
                   >
@@ -295,13 +379,22 @@ const Contact: React.FC = () => {
             <div className="flex flex-col gap-3">
               <p className="text-[14px] font-black text-white/40 tracking-widest">الرسالة</p>
               <textarea 
-                name="Message"
+                required
+                name="message"
                 rows={4} 
                 placeholder="أخبرنا عن طموحاتك وتحديات مشروعك..." 
                 className="w-full bg-white/5 border border-white/10 rounded-[16px] px-6 py-5 text-[1rem] font-medium text-white placeholder-white/20 focus:outline-none focus:border-secondary focus:bg-white/10 transition-all resize-none"
                 data-cursor-text="اكتب الرسالة"
               ></textarea>
             </div>
+
+            {/* Error Message Display */}
+            {errorMessage && (
+              <div className="flex items-center gap-2 text-red-400 bg-red-400/10 p-4 rounded-xl border border-red-400/20">
+                <AlertCircle size={20} className="shrink-0" />
+                <span className="text-sm font-bold">{errorMessage}</span>
+              </div>
+            )}
 
             <div className="mt-4">
               <button 

@@ -1,4 +1,5 @@
 
+
 export interface Setting {
   key: string;
   value: string;
@@ -284,5 +285,64 @@ export const fetchProjectById = async (id: number): Promise<ProjectItem | null> 
   } catch (error) {
     console.warn(`Project detail fetch failed for ID ${id}`, error);
     return null;
+  }
+};
+
+/**
+ * Send Contact Message via API
+ */
+export const sendContactMessage = async (formData: FormData): Promise<any> => {
+  const CONTACT_URL = `${API_BASE_URL}/contact-messages`;
+
+  try {
+    const response = await fetch(CONTACT_URL, {
+      method: 'POST',
+      headers: {
+        'Accept': 'application/json',
+      },
+      body: formData,
+    });
+
+    const json = await response.json();
+
+    if (!response.ok) {
+      // Throw with message from server if available
+      throw new Error(json.message || `Error ${response.status}: ${response.statusText}`);
+    }
+
+    return json;
+  } catch (error) {
+    console.error('Submission failed:', error);
+    throw error;
+  }
+};
+
+/**
+ * Subscribe to Newsletter via API
+ */
+export const subscribeNewsletter = async (email: string): Promise<any> => {
+  const SUBSCRIBE_URL = `${API_BASE_URL}/subscribe`;
+
+  try {
+    const response = await fetch(SUBSCRIBE_URL, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+      },
+      body: JSON.stringify({ email }),
+    });
+
+    const json = await response.json();
+
+    if (!response.ok) {
+      // Return the error object to be handled by the component
+      throw json;
+    }
+
+    return json;
+  } catch (error) {
+    console.error('Subscription failed:', error);
+    throw error;
   }
 };

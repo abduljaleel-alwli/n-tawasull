@@ -1,7 +1,8 @@
+
 import React, { useState } from 'react';
-import { ArrowLeft, Twitter, Linkedin, Instagram, Globe, Shield, FileText, Mail, CheckCircle2, Facebook, X } from 'lucide-react';
+import { ArrowLeft, Twitter, Linkedin, Instagram, Globe, Shield, FileText, Mail, CheckCircle2, Facebook, X, AlertCircle } from 'lucide-react';
 import { useSettings } from '../context/SettingsContext';
-import { getFileUrl } from '../utils/api';
+import { getFileUrl, subscribeNewsletter } from '../utils/api';
 
 const RollingLink: React.FC<{ text: string; href: string; icon?: React.ReactNode }> = ({ text, href, icon }) => {
   return (
@@ -26,6 +27,8 @@ const Footer: React.FC = () => {
   const [email, setEmail] = useState('');
   const [isSubscribed, setIsSubscribed] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [message, setMessage] = useState<string | null>(null);
+  const [isError, setIsError] = useState(false);
   
   const { getSetting } = useSettings();
   
@@ -41,8 +44,6 @@ const Footer: React.FC = () => {
   const socialLinks = Array.isArray(socialLinksRaw) ? socialLinksRaw : [];
 
   const getSocialIcon = (platform: string, iconClass: string) => {
-      // If we want to use the FontAwesome class from the API, we could render an <i> element.
-      // But keeping consistency with Lucide icons for now or mapping them.
       const p = platform.toLowerCase();
       if (p.includes('twitter') || p.includes('x')) return <Twitter size={16} />;
       if (p.includes('linkedin')) return <Linkedin size={16} />;
@@ -51,20 +52,40 @@ const Footer: React.FC = () => {
       return <Globe size={16} />;
   };
 
-  const handleNewsletterSubmit = (e: React.FormEvent) => {
+  const handleNewsletterSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!email) return;
     
     setIsSubmitting(true);
-    // Simulate API call
-    setTimeout(() => {
-      setIsSubmitting(false);
+    setMessage(null);
+    setIsError(false);
+
+    try {
+      const response = await subscribeNewsletter(email);
       setIsSubscribed(true);
       setEmail('');
+      setMessage(response.message || "تم الاشتراك بنجاح!");
       
-      // Reset after some time
-      setTimeout(() => setIsSubscribed(false), 5000);
-    }, 1200);
+      // Reset success state after some time
+      setTimeout(() => {
+        setIsSubscribed(false);
+        setMessage(null);
+      }, 5000);
+    } catch (error: any) {
+      setIsError(true);
+      
+      // Handle different error structures
+      let errorMsg = "حدث خطأ غير متوقع. حاول مرة أخرى.";
+      if (error?.errors?.email?.[0]) {
+         errorMsg = error.errors.email[0];
+      } else if (error?.message) {
+         errorMsg = error.message;
+      }
+      
+      setMessage(errorMsg);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -85,17 +106,20 @@ const Footer: React.FC = () => {
                 {isSubscribed ? (
                   <div className="flex items-center gap-3 bg-green-500/10 border border-green-500/20 p-4 rounded-2xl animate-entrance-scale">
                     <CheckCircle2 className="text-green-500 shrink-0" size={24} />
-                    <span className="text-white font-bold text-sm">شكراً لاشتراكك! سنتواصل معك قريباً.</span>
+                    <span className="text-white font-bold text-sm">{message || 'شكراً لاشتراكك! سنتواصل معك قريباً.'}</span>
                   </div>
                 ) : (
                   <form onSubmit={handleNewsletterSubmit} className="relative group">
-                    <div className="flex items-center bg-white/5 border border-white/10 rounded-2xl sm:rounded-full p-1.5 focus-within:border-secondary focus-within:bg-white/10 transition-all duration-500 flex-col sm:flex-row gap-2 sm:gap-0">
+                    <div className={`flex items-center bg-white/5 border ${isError ? 'border-red-500/50' : 'border-white/10'} rounded-2xl sm:rounded-full p-1.5 focus-within:border-secondary focus-within:bg-white/10 transition-all duration-500 flex-col sm:flex-row gap-2 sm:gap-0`}>
                       <input 
                         type="email" 
                         required
                         placeholder="بريدك الإلكتروني" 
                         value={email}
-                        onChange={(e) => setEmail(e.target.value)}
+                        onChange={(e) => {
+                            setEmail(e.target.value);
+                            if (isError) setIsError(false); // Clear error on type
+                        }}
                         className="bg-transparent border-none outline-none text-white w-full py-3 px-4 font-medium placeholder-white/20 text-right sm:text-right"
                         data-cursor-text="اكتب بريدك"
                       />
@@ -128,6 +152,12 @@ const Footer: React.FC = () => {
                         </div>
                       </button>
                     </div>
+                    {isError && message && (
+                        <div className="absolute -bottom-8 right-4 flex items-center gap-1 text-red-400 animate-entrance-down">
+                            <AlertCircle size={14} />
+                            <p className="text-xs font-bold">{message}</p>
+                        </div>
+                    )}
                   </form>
                 )}
               </div>
