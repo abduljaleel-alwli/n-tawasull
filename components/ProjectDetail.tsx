@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect, useMemo, useRef } from 'react';
-import { ArrowRight, Link as LinkIcon, MessageCircle, ArrowLeft, Loader2, Play } from 'lucide-react';
-import { fetchProjectById, ProjectItem, ProjectVideo } from '../utils/api';
+import { ArrowRight, Link as LinkIcon, MessageCircle, ArrowLeft, Loader2, Play, MessageSquare } from 'lucide-react';
+import { fetchProjectById, ProjectItem, ProjectVideo, trackAnalyticsEvent } from '../utils/api';
 
 interface ProjectDetailProps {
   project: ProjectItem;
@@ -108,6 +108,19 @@ const ProjectDetail: React.FC<ProjectDetailProps> = ({ project: initialProject, 
 
   // Combine initial list data with full details if available
   const activeProject = detailedProject || displayProject;
+
+  // Track Page View on Project Change
+  useEffect(() => {
+    if (activeProject) {
+        trackAnalyticsEvent({
+            event: 'page_view',
+            page: `/projects/${activeProject.id}`,
+            entity_type: 'project',
+            entity_id: activeProject.id.toString(),
+            title: activeProject.title
+        });
+    }
+  }, [activeProject.id]);
 
   // Scroll Progress Logic
   useEffect(() => {
@@ -412,6 +425,34 @@ const ProjectDetail: React.FC<ProjectDetailProps> = ({ project: initialProject, 
                 </div>
              </section>
           )}
+
+          {/* CTA Section */}
+          <section className="mb-32 reveal" style={{ transitionDelay: '400ms' }}>
+              <div className="relative bg-primary rounded-[40px] p-12 md:p-24 text-center overflow-hidden group shadow-2xl">
+                  {/* Background Effects */}
+                  <div className="absolute top-0 right-0 w-[300px] h-[300px] bg-secondary/20 blur-[120px] rounded-full -translate-y-1/2 translate-x-1/2 pointer-events-none"></div>
+                  <div className="absolute bottom-0 left-0 w-[300px] h-[300px] bg-white/5 blur-[120px] rounded-full translate-y-1/2 -translate-x-1/2 pointer-events-none"></div>
+                  
+                  <div className="relative z-10 flex flex-col items-center">
+                      <h2 className="text-3xl md:text-5xl lg:text-6xl font-black text-white mb-6 tracking-tight leading-tight">
+                          هل أعجبك المشروع؟
+                      </h2>
+                      <p className="text-lg md:text-xl text-white/80 font-medium max-w-2xl mx-auto mb-12 leading-relaxed">
+                          نحن جاهزون لتحويل فكرتك إلى واقع ملموس بنفس مستوى الجودة والاحترافية.
+                      </p>
+                      
+                      <a 
+                          href="#contact"
+                          onClick={onBack}
+                          className="group/btn relative inline-flex items-center justify-center bg-white text-primary min-w-[200px] px-10 py-5 rounded-[20px] font-black text-lg transition-all duration-500 hover:scale-[1.02] hover:shadow-[0_20px_40px_-15px_rgba(255,255,255,0.3)] overflow-hidden"
+                          data-cursor-text="تواصل معنا"
+                      >
+                          <span className="relative z-10 group-hover/btn:text-white transition-colors duration-500">ابدأ مشروعك الآن</span>
+                          <div className="absolute inset-0 bg-secondary transform scale-x-0 group-hover/btn:scale-x-100 transition-transform duration-500 origin-right"></div>
+                      </a>
+                  </div>
+              </div>
+          </section>
 
           <section className="pb-20">
             <h2 className="reveal text-5xl md:text-7xl font-black text-primary tracking-tighter mb-16 text-right" style={{ transitionDelay: '200ms' }}>مشاريع تالية.</h2>

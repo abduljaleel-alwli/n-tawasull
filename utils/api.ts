@@ -421,17 +421,19 @@ export const subscribeNewsletter = async (email: string): Promise<any> => {
 export const trackAnalyticsEvent = (data: any) => {
   const TRACK_URL = `${API_BASE_URL}/analytics/track`;
 
-  // Use sendBeacon if available for reliable background sending during navigation
-  if (navigator.sendBeacon) {
-    const blob = new Blob([JSON.stringify(data)], { type: 'application/json' });
-    navigator.sendBeacon(TRACK_URL, blob);
-  } else {
-    // Fallback
-    fetch(TRACK_URL, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(data),
-      keepalive: true
-    }).catch(err => console.error("Analytics Tracking Error:", err));
-  }
+  // Use fetch with keepalive which is the modern standard replacing sendBeacon for JSON data.
+  // We use .catch() to silently handle CORS/Network errors so they don't disrupt the user experience or throw unhandled exceptions.
+  // This solves the 'CORS error' on local environments and ensures a single reliable request attempt.
+  fetch(TRACK_URL, {
+    method: 'POST',
+    headers: { 
+        'Content-Type': 'application/json',
+        'Accept': 'application/json'
+    },
+    body: JSON.stringify(data),
+    keepalive: true
+  }).catch(err => {
+    // Silently fail for analytics to not disturb user experience
+    // console.warn("Analytics Tracking Error:", err);
+  });
 };
