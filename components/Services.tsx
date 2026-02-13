@@ -172,7 +172,6 @@ const ImageSliderCard: React.FC<ImageSliderCardProps> = ({ cardIndex, images }) 
 
 const Services: React.FC = () => {
   const [activeTab, setActiveTab] = useState('all');
-  const [visibleCount, setVisibleCount] = useState(3);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   
   // Data States
@@ -184,74 +183,89 @@ const Services: React.FC = () => {
     { id: 'حلول', name: 'أتمتة وأعمال' },
   ]);
   const [isDataLoaded, setIsDataLoaded] = useState(false);
+  
+  // Pagination State
+  const [page, setPage] = useState(1);
+  const [hasMore, setHasMore] = useState(true);
 
   const { getSetting } = useSettings();
+
+  // Function to load services by page
+  const loadServices = async (pageNum: number) => {
+    const settingsServices = getSetting('services.items', initialServiceData);
+    
+    try {
+      const apiData = await fetchServices(pageNum);
+      
+      if (apiData && apiData.length > 0) {
+        // If data found, append it (or set it if page 1)
+        if (pageNum === 1) {
+            setServices(apiData);
+        } else {
+            setServices(prev => [...prev, ...apiData]);
+        }
+        
+        // Dynamically update categories based on all loaded services
+        const currentServices = pageNum === 1 ? apiData : [...services, ...apiData];
+        const uniqueCategories = Array.from(new Set(currentServices.map(s => s.category)));
+        const dynamicCategories = [
+            { id: 'all', name: 'الكل' },
+            ...uniqueCategories.map(cat => ({ id: cat, name: cat }))
+        ];
+        setCategories(dynamicCategories);
+        
+        // Assume there might be more unless we got an empty array (which is handled below)
+        // or if we got fewer items than expected (optional heuristic, but simple emptiness check is safer for generic API)
+        setHasMore(true);
+      } else {
+        // No data returned
+        if (pageNum === 1) {
+             // Fallback to local settings only on first page fail/empty
+             setServices(settingsServices);
+        } else {
+             // If page > 1 and empty, it means we reached the end
+             setHasMore(false);
+        }
+      }
+    } catch (err) {
+      if (pageNum === 1) {
+        setServices(settingsServices);
+      } else {
+        setHasMore(false);
+      }
+    } finally {
+      setIsDataLoaded(true);
+      setIsLoadingMore(false);
+    }
+  };
 
   // Initial Data Fetch
   useEffect(() => {
     let isMounted = true;
-    
-    // First, try to load settings-based services (legacy fallback)
-    const settingsServices = getSetting('services.items', initialServiceData);
-    
-    const loadApiServices = async () => {
-      try {
-        const apiData = await fetchServices();
-        
-        if (isMounted) {
-          if (apiData && apiData.length > 0) {
-            setServices(apiData);
-            
-            // Generate Dynamic Categories from API Data
-            const uniqueCategories = Array.from(new Set(apiData.map(s => s.category)));
-            const dynamicCategories = [
-              { id: 'all', name: 'الكل' },
-              ...uniqueCategories.map(cat => ({ id: cat, name: cat }))
-            ];
-            
-            setCategories(dynamicCategories);
-          } else {
-            // Fallback to local/settings data if API returns empty
-            setServices(settingsServices);
-          }
-          setIsDataLoaded(true);
-        }
-      } catch (err) {
-        if (isMounted) {
-          setServices(settingsServices);
-          setIsDataLoaded(true);
-        }
-      }
-    };
-
-    loadApiServices();
-
+    if (isMounted) {
+        setPage(1);
+        setHasMore(true);
+        loadServices(1);
+    }
     return () => { isMounted = false; };
-  }, [getSetting]);
+  }, [getSetting]); // Reload if settings change, though usually static
 
-  useEffect(() => {
-    setVisibleCount(3);
-  }, [activeTab]);
+  const handleLoadMore = () => {
+    if (isLoadingMore || !hasMore) return;
+    setIsLoadingMore(true);
+    
+    const nextPage = page + 1;
+    setPage(nextPage);
+    loadServices(nextPage);
+  };
 
+  // Filter the accumulated services locally
   const filteredServices = activeTab === 'all' 
     ? services 
     : services.filter((s: any) => s.category === activeTab);
 
-  const displayedServices = filteredServices.slice(0, visibleCount);
-  const hasMore = visibleCount < filteredServices.length;
-
-  const handleLoadMore = () => {
-    if (isLoadingMore) return;
-    setIsLoadingMore(true);
-    
-    setTimeout(() => {
-      setVisibleCount(prev => prev + 3);
-      setIsLoadingMore(false);
-    }, 1200);
-  };
-
-  // Determine which data to render (Skeleton-like if loading, or actual data)
-  const renderData = isDataLoaded ? displayedServices : initialServiceData.slice(0, 3); // Show initial mock as skeleton/placeholder
+  // Determine what to show: loaded data or placeholder if initial load failed without fallback (rare)
+  const renderData = isDataLoaded ? filteredServices : initialServiceData.slice(0, 3);
 
   return (
     <section id="services" className="py-24 px-6 md:px-12 max-w-[1350px] mx-auto overflow-visible" dir="rtl">
@@ -325,7 +339,7 @@ const Services: React.FC = () => {
         )}
       </div>
 
-      {/* Modern Professional Load More Button */}
+      {/* Modern Professional Load More Button - Only shows if API has more pages */}
       {isDataLoaded && hasMore && (
         <div className="reveal mt-16 text-center" style={{ transitionDelay: '200ms' }}>
           <button 

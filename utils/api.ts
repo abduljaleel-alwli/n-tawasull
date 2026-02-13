@@ -68,296 +68,248 @@ export const getFileUrl = (path: string | null | undefined, fallback: string = '
     return `${cleanBase}/${cleanPath}`;
 };
 
-// --- In-Memory Cache & Promise Deduplication Storage ---
-let settingsCache: Record<string, any> | null = null;
-let settingsPromise: Promise<Record<string, any>> | null = null;
+// --- Professional Caching & Deduplication System ---
 
-let servicesCache: ServiceItem[] | null = null;
-let servicesPromise: Promise<ServiceItem[]> | null = null;
+// Stores the results of completed requests (Cache)
+// Key: unique string identifier (e.g., 'services-page-1'), Value: The data
+const dataCache = new Map<string, any>();
 
-let projectsCache: ProjectItem[] | null = null;
-let projectsPromise: Promise<ProjectItem[]> | null = null;
-
-const projectDetailsCache = new Map<number, ProjectItem>();
-const projectDetailsPromises = new Map<number, Promise<ProjectItem | null>>();
+// Stores active promises for in-flight requests (Deduplication)
+// Key: unique string identifier, Value: The Promise
+const activeRequests = new Map<string, Promise<any>>();
 
 /**
- * Fetches settings from the API with Caching & Deduplication.
+ * Generic fetcher with caching and deduplication logic.
+ * @param key Unique identifier for the request (e.g., 'services_1')
+ * @param url The API endpoint URL
+ * @param transformFn Optional function to transform raw JSON to desired format
+ */
+async function fetchWithCacheAndDedupe<T>(
+    key: string, 
+    url: string, 
+    transformFn: (data: any) => T,
+    ttl: number = 300000 // Default cache time: 5 minutes (in ms)
+): Promise<T> {
+    
+    // 1. Check Memory Cache
+    if (dataCache.has(key)) {
+        // We could check timestamp here for TTL expiration if needed
+        return dataCache.get(key) as T;
+    }
+
+    // 2. Check In-Flight Requests (Deduplication)
+    // If a request for this key is already running, return that promise
+    // instead of creating a new network request.
+    if (activeRequests.has(key)) {
+        return activeRequests.get(key) as Promise<T>;
+    }
+
+    // 3. Create New Request
+    const requestPromise = (async () => {
+        try {
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 10000); // 10s timeout
+
+            const response = await fetch(url, {
+                method: 'GET',
+                headers: { 'Accept': 'application/json' },
+                signal: controller.signal
+            });
+
+            clearTimeout(timeoutId);
+
+            if (!response.ok) {
+                // If 404 or other error, return empty/null but don't crash
+                console.warn(`API Error [${key}]: ${response.status}`);
+                // Return empty array/object based on expected type structure if possible, 
+                // but here we might throw or return a safe default handled by the caller.
+                // For safety in this app structure, we usually return empty arrays/objects.
+                throw new Error(`HTTP Error ${response.status}`);
+            }
+
+            const json = await response.json();
+            const result = transformFn(json);
+
+            // 4. Save to Cache
+            dataCache.set(key, result);
+            
+            return result;
+
+        } catch (error) {
+            console.warn(`Fetch failed for [${key}]:`, error);
+            throw error;
+        } finally {
+            // 5. Cleanup Active Request
+            activeRequests.delete(key);
+        }
+    })();
+
+    activeRequests.set(key, requestPromise);
+    
+    // Handle errors locally to ensure the promise resolves to a safe fallback if needed,
+    // or let the caller handle it. Here we return the promise which might reject.
+    return requestPromise;
+}
+
+/**
+ * Fetches settings from the API.
  */
 export const fetchSettings = async (): Promise<Record<string, any>> => {
-  // 1. Return cached data if available
-  if (settingsCache) return settingsCache;
-
-  // 2. Return ongoing request promise if exists (Deduplication)
-  if (settingsPromise) return settingsPromise;
-
-  const SETTINGS_URL = `${API_BASE_URL}/settings`;
-
-  // 3. Create new request
-  settingsPromise = (async () => {
-    try {
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 8000); 
-
-      const response = await fetch(SETTINGS_URL, {
-        method: 'GET',
-        signal: controller.signal,
-        headers: {
-          'Accept': 'application/json',
-        },
-      });
-
-      clearTimeout(timeoutId);
-
-      if (!response.ok) {
-          console.warn(`Settings API returned status: ${response.status}`);
-          return {};
-      }
-      
-      const json: ApiResponse = await response.json();
-      const settings: Record<string, any> = {};
-      
-      if (json.data && Array.isArray(json.data)) {
-          json.data.forEach(item => {
-              let parsedValue: any = item.value;
-
-              if (item.type === 'json' || (typeof item.value === 'string' && (item.value.trim().startsWith('[') || item.value.trim().startsWith('{')))) {
-                  try {
-                      parsedValue = typeof item.value === 'string' ? JSON.parse(item.value) : item.value;
-                  } catch (e) {
-                      parsedValue = item.value;
-                  }
-              } else if (item.type === 'boolean') {
-                  parsedValue = item.value === '1' || item.value === 'true' || (item.value as any) === true;
-              } else if (item.type === 'number' || item.type === 'integer') {
-                  parsedValue = Number(item.value);
-              }
-
-              settings[item.key] = parsedValue;
-          });
-      }
-
-      settingsCache = settings; // Save to cache
-      return settings;
-    } catch (error) {
-      console.warn('Settings fetch failed. Using local fallback data.');
-      return {};
-    } finally {
-      settingsPromise = null; // Reset promise so we can retry on next call if needed (though usually we keep cache)
-    }
-  })();
-
-  return settingsPromise;
+    return fetchWithCacheAndDedupe(
+        'settings',
+        `${API_BASE_URL}/settings`,
+        (json) => {
+            const settings: Record<string, any> = {};
+            if (json.data && Array.isArray(json.data)) {
+                json.data.forEach((item: any) => {
+                    let parsedValue: any = item.value;
+                    // Smart type parsing
+                    if (item.type === 'json' || (typeof item.value === 'string' && (item.value.trim().startsWith('[') || item.value.trim().startsWith('{')))) {
+                        try { parsedValue = typeof item.value === 'string' ? JSON.parse(item.value) : item.value; } catch (e) { parsedValue = item.value; }
+                    } else if (item.type === 'boolean') {
+                        parsedValue = item.value === '1' || item.value === 'true' || (item.value as any) === true;
+                    } else if (item.type === 'number' || item.type === 'integer') {
+                        parsedValue = Number(item.value);
+                    }
+                    settings[item.key] = parsedValue;
+                });
+            }
+            return settings;
+        }
+    ).catch(() => ({})); // Fallback to empty object on error
 };
 
 /**
- * Fetches services from the API with Caching & Deduplication.
+ * Fetches services from the API with Pagination.
  */
-export const fetchServices = async (): Promise<ServiceItem[]> => {
-  if (servicesCache) return servicesCache;
-  if (servicesPromise) return servicesPromise;
+export const fetchServices = async (page: number = 1): Promise<ServiceItem[]> => {
+    return fetchWithCacheAndDedupe(
+        `services_page_${page}`,
+        `${API_BASE_URL}/services?page=${page}`,
+        (json) => {
+            const dataArray = Array.isArray(json.data) ? json.data : (Array.isArray(json) ? json : []);
+            return dataArray.map((item: any) => {
+                let parsedTags: string[] = [];
+                if (Array.isArray(item.tags)) {
+                    parsedTags = item.tags;
+                } else if (typeof item.tags === 'string') {
+                    try { parsedTags = JSON.parse(item.tags); } catch { parsedTags = item.tags.split(',').map((t: string) => t.trim()); }
+                }
 
-  const SERVICES_URL = `${API_BASE_URL}/services`;
+                let parsedImages: string[] = [];
+                if (Array.isArray(item.images)) {
+                      parsedImages = item.images.map((img: string) => getFileUrl(img));
+                }
 
-  servicesPromise = (async () => {
-    try {
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 8000);
-
-      const response = await fetch(SERVICES_URL, {
-        method: 'GET',
-        signal: controller.signal,
-        headers: { 'Accept': 'application/json' },
-      });
-
-      clearTimeout(timeoutId);
-
-      if (!response.ok) return [];
-
-      const json = await response.json();
-      const dataArray = Array.isArray(json.data) ? json.data : (Array.isArray(json) ? json : []);
-
-      const result = dataArray.map((item: any) => {
-          let parsedTags: string[] = [];
-          if (Array.isArray(item.tags)) {
-              parsedTags = item.tags;
-          } else if (typeof item.tags === 'string') {
-              try { parsedTags = JSON.parse(item.tags); } catch { parsedTags = item.tags.split(',').map((t: string) => t.trim()); }
-          }
-
-          let parsedImages: string[] = [];
-          if (Array.isArray(item.images)) {
-               parsedImages = item.images.map((img: string) => getFileUrl(img));
-          }
-
-          return {
-              id: item.id,
-              title: item.title,
-              description: item.description,
-              category: item.category || 'عام',
-              category_id: item.category_id,
-              tags: parsedTags,
-              main_image: getFileUrl(item.main_image),
-              images: parsedImages.length > 0 ? parsedImages : [getFileUrl(item.main_image)],
-              display_order: item.display_order
-          };
-      });
-
-      servicesCache = result;
-      return result;
-    } catch (error) {
-      console.warn('Services fetch failed', error);
-      return [];
-    } finally {
-      servicesPromise = null;
-    }
-  })();
-
-  return servicesPromise;
+                return {
+                    id: item.id,
+                    title: item.title,
+                    description: item.description,
+                    category: item.category || 'عام',
+                    category_id: item.category_id,
+                    tags: parsedTags,
+                    main_image: getFileUrl(item.main_image),
+                    images: parsedImages.length > 0 ? parsedImages : [getFileUrl(item.main_image)],
+                    display_order: item.display_order
+                };
+            });
+        }
+    ).catch(() => []); // Fallback to empty array
 };
 
 /**
- * Fetches all projects from the API with Caching & Deduplication.
+ * Fetches projects from the API with Pagination.
  */
-export const fetchProjects = async (): Promise<ProjectItem[]> => {
-  if (projectsCache) return projectsCache;
-  if (projectsPromise) return projectsPromise;
-
-  const PROJECTS_URL = `${API_BASE_URL}/projects`;
-
-  projectsPromise = (async () => {
-    try {
-      const response = await fetch(PROJECTS_URL, {
-        headers: { 'Accept': 'application/json' }
-      });
-      
-      if (!response.ok) return [];
-      
-      const json = await response.json();
-      const dataArray = Array.isArray(json.data) ? json.data : (Array.isArray(json) ? json : []);
-
-      const result = dataArray.map((item: any) => ({
-        id: item.id,
-        title: item.title,
-        description: item.description,
-        category: item.category || 'عام',
-        category_id: item.category_id,
-        main_image: getFileUrl(item.main_image),
-        display_order: item.display_order
-      }));
-
-      projectsCache = result;
-      return result;
-
-    } catch (error) {
-      console.warn('Projects fetch failed', error);
-      return [];
-    } finally {
-      projectsPromise = null;
-    }
-  })();
-
-  return projectsPromise;
+export const fetchProjects = async (page: number = 1): Promise<ProjectItem[]> => {
+    return fetchWithCacheAndDedupe(
+        `projects_page_${page}`,
+        `${API_BASE_URL}/projects?page=${page}`,
+        (json) => {
+            const dataArray = Array.isArray(json.data) ? json.data : (Array.isArray(json) ? json : []);
+            return dataArray.map((item: any) => ({
+                id: item.id,
+                title: item.title,
+                description: item.description,
+                category: item.category || 'عام',
+                category_id: item.category_id,
+                main_image: getFileUrl(item.main_image),
+                display_order: item.display_order
+            }));
+        }
+    ).catch(() => []); // Fallback to empty array
 };
 
 /**
- * Fetches a single project detail by ID with Map Caching & Deduplication.
+ * Fetches a single project detail by ID.
  */
 export const fetchProjectById = async (id: number): Promise<ProjectItem | null> => {
-  if (projectDetailsCache.has(id)) {
-    return projectDetailsCache.get(id) || null;
-  }
-  
-  if (projectDetailsPromises.has(id)) {
-    return projectDetailsPromises.get(id) || null;
-  }
+    return fetchWithCacheAndDedupe(
+        `project_detail_${id}`,
+        `${API_BASE_URL}/projects/${id}`,
+        (json) => {
+            const item = json.data || json;
+            
+            // Helper to parse lists safely
+            const parseList = (val: any) => {
+                if (Array.isArray(val)) return val;
+                if (typeof val === 'string') {
+                    try { return JSON.parse(val); } catch { return []; }
+                }
+                return [];
+            };
 
-  const PROJECT_URL = `${API_BASE_URL}/projects/${id}`;
+            const imagesRaw = parseList(item.images);
+            const images = imagesRaw.map((img: any) => {
+                const path = typeof img === 'string' ? img : (img?.url || img?.path || '');
+                return getFileUrl(path);
+            }).filter((url: string) => url !== '');
 
-  const promise = (async () => {
-    try {
-      const response = await fetch(PROJECT_URL, {
-        headers: { 'Accept': 'application/json' }
-      });
+            const mainImgUrl = getFileUrl(item.main_image);
+            if (!images.includes(mainImgUrl) && mainImgUrl) {
+                images.unshift(mainImgUrl);
+            }
 
-      if (!response.ok) return null;
+            let features: ProjectFeature[] = [];
+            if (Array.isArray(item.features)) {
+                features = item.features.map((f: any) => ({
+                    title: f.title || '',
+                    description: f.description || ''
+                }));
+            }
 
-      const json = await response.json();
-      const item = json.data || json;
+            let videos: ProjectVideo[] = [];
+            if (Array.isArray(item.videos)) {
+                videos = item.videos.map((v: any) => ({
+                    type: v.type || 'url',
+                    provider: v.provider || 'other',
+                    title: v.title || '',
+                    url: v.url || null,
+                    iframe: v.iframe || null
+                }));
+            }
 
-      // Parse Helpers
-      const parseList = (val: any) => {
-        if (Array.isArray(val)) return val;
-        if (typeof val === 'string') {
-          try { return JSON.parse(val); } catch { return []; }
+            return {
+                id: item.id,
+                title: item.title,
+                description: item.description,
+                category: item.category || 'عام',
+                category_id: item.category_id,
+                main_image: getFileUrl(item.main_image),
+                content: item.content,
+                images: images,
+                videos: videos,
+                features: features,
+                display_order: item.display_order
+            };
         }
-        return [];
-      };
-
-      const imagesRaw = parseList(item.images);
-      const images = imagesRaw.map((img: any) => {
-          const path = typeof img === 'string' ? img : (img?.url || img?.path || '');
-          return getFileUrl(path);
-      }).filter((url: string) => url !== '');
-
-      // Prepend main image to images list if not present
-      const mainImgUrl = getFileUrl(item.main_image);
-      if (!images.includes(mainImgUrl) && mainImgUrl) {
-        images.unshift(mainImgUrl);
-      }
-
-      // features
-      let features: ProjectFeature[] = [];
-      if (Array.isArray(item.features)) {
-          features = item.features.map((f: any) => ({
-              title: f.title || '',
-              description: f.description || ''
-          }));
-      }
-
-      // videos
-      let videos: ProjectVideo[] = [];
-      if (Array.isArray(item.videos)) {
-          videos = item.videos.map((v: any) => ({
-              type: v.type || 'url',
-              provider: v.provider || 'other',
-              title: v.title || '',
-              url: v.url || null,
-              iframe: v.iframe || null
-          }));
-      }
-
-      const result = {
-        id: item.id,
-        title: item.title,
-        description: item.description,
-        category: item.category || 'عام',
-        category_id: item.category_id,
-        main_image: getFileUrl(item.main_image),
-        content: item.content,
-        images: images,
-        videos: videos,
-        features: features,
-        display_order: item.display_order
-      };
-
-      projectDetailsCache.set(id, result);
-      return result;
-
-    } catch (error) {
-      console.warn(`Project detail fetch failed for ID ${id}`, error);
-      return null;
-    } finally {
-      projectDetailsPromises.delete(id);
-    }
-  })();
-
-  projectDetailsPromises.set(id, promise);
-  return promise;
+    ).catch((err) => {
+        console.warn(`Project detail fetch failed for ID ${id}`, err);
+        return null;
+    });
 };
 
 /**
- * Send Contact Message via API
+ * Send Contact Message via API (POST requests are not cached)
  */
 export const sendContactMessage = async (formData: FormData): Promise<any> => {
   const CONTACT_URL = `${API_BASE_URL}/contact-messages`;
@@ -374,7 +326,6 @@ export const sendContactMessage = async (formData: FormData): Promise<any> => {
     const json = await response.json();
 
     if (!response.ok) {
-      // Throw with message from server if available
       throw new Error(json.message || `Error ${response.status}: ${response.statusText}`);
     }
 
@@ -386,7 +337,7 @@ export const sendContactMessage = async (formData: FormData): Promise<any> => {
 };
 
 /**
- * Subscribe to Newsletter via API
+ * Subscribe to Newsletter via API (POST requests are not cached)
  */
 export const subscribeNewsletter = async (email: string): Promise<any> => {
   const SUBSCRIBE_URL = `${API_BASE_URL}/subscribe`;
@@ -404,7 +355,6 @@ export const subscribeNewsletter = async (email: string): Promise<any> => {
     const json = await response.json();
 
     if (!response.ok) {
-      // Return the error object to be handled by the component
       throw json;
     }
 
@@ -416,14 +366,11 @@ export const subscribeNewsletter = async (email: string): Promise<any> => {
 };
 
 /**
- * Track Analytics Event
+ * Track Analytics Event (Fire and forget, no caching needed)
  */
 export const trackAnalyticsEvent = (data: any) => {
   const TRACK_URL = `${API_BASE_URL}/analytics/track`;
 
-  // Use fetch with keepalive which is the modern standard replacing sendBeacon for JSON data.
-  // We use .catch() to silently handle CORS/Network errors so they don't disrupt the user experience or throw unhandled exceptions.
-  // This solves the 'CORS error' on local environments and ensures a single reliable request attempt.
   fetch(TRACK_URL, {
     method: 'POST',
     headers: { 
@@ -432,8 +379,7 @@ export const trackAnalyticsEvent = (data: any) => {
     },
     body: JSON.stringify(data),
     keepalive: true
-  }).catch(err => {
-    // Silently fail for analytics to not disturb user experience
-    // console.warn("Analytics Tracking Error:", err);
+  }).catch(() => {
+    // Silent fail
   });
 };

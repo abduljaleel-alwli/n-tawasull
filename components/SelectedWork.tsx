@@ -1,51 +1,90 @@
 
 import { Link as LinkIcon, Layers, Plus, Loader2 } from 'lucide-react';
 import React, { useState, useMemo, useEffect } from 'react';
-import { ProjectItem } from '../utils/api';
+import { ProjectItem, fetchProjects } from '../utils/api';
 
 interface SelectedWorkProps {
   projects: ProjectItem[];
   onProjectClick?: (project: ProjectItem) => void;
 }
 
-const SelectedWork: React.FC<SelectedWorkProps> = ({ projects, onProjectClick }) => {
+const SelectedWork: React.FC<SelectedWorkProps> = ({ projects: initialProjects, onProjectClick }) => {
   const [activeFilter, setActiveFilter] = useState('الكل');
-  const [visibleCount, setVisibleCount] = useState(3);
+  
+  // Internal State for Pagination
+  const [allProjects, setAllProjects] = useState<ProjectItem[]>(initialProjects);
+  const [page, setPage] = useState(1);
+  const [hasMore, setHasMore] = useState(true);
   const [isLoading, setIsLoading] = useState(false);
+  const [isDataLoaded, setIsDataLoaded] = useState(initialProjects.length > 0);
+
   const cardShadow = "rgba(0, 0, 0, 0.1) 0px 4px 12px";
 
-  // Reset visible count when filter changes
+  // Sync with initial projects if provided (handles first load from App.tsx)
   useEffect(() => {
-    setVisibleCount(3);
-  }, [activeFilter]);
+    if (initialProjects.length > 0 && page === 1 && allProjects.length === 0) {
+        setAllProjects(initialProjects);
+        setIsDataLoaded(true);
+    } else if (initialProjects.length > 0 && page === 1 && allProjects.length === initialProjects.length && allProjects[0]?.id !== initialProjects[0]?.id) {
+        // Simple check if prop updated with different data (e.g. refresh)
+        setAllProjects(initialProjects);
+    }
+  }, [initialProjects, page]);
 
+  // Load Projects Function
+  const loadProjects = async (pageNum: number) => {
+    try {
+      const apiData = await fetchProjects(pageNum);
+      
+      if (apiData && apiData.length > 0) {
+        if (pageNum === 1) {
+            setAllProjects(apiData);
+        } else {
+            setAllProjects(prev => {
+                // Prevent duplicates just in case
+                const existingIds = new Set(prev.map(p => p.id));
+                const newItems = apiData.filter(p => !existingIds.has(p.id));
+                return [...prev, ...newItems];
+            });
+        }
+        setHasMore(true);
+      } else {
+        setHasMore(false);
+      }
+    } catch (err) {
+       setHasMore(false);
+    } finally {
+       setIsLoading(false);
+       setIsDataLoaded(true);
+    }
+  };
+
+  const handleLoadMore = () => {
+    if (isLoading || !hasMore) return;
+    setIsLoading(true);
+    
+    const nextPage = page + 1;
+    setPage(nextPage);
+    loadProjects(nextPage);
+  };
+
+  // Dynamic Categories based on ALL loaded projects
   const categories = useMemo(() => {
     const cats = ['الكل'];
-    if (projects && projects.length > 0) {
-      projects.forEach(p => {
+    if (allProjects && allProjects.length > 0) {
+      allProjects.forEach(p => {
         if (p.category && !cats.includes(p.category)) cats.push(p.category);
       });
     }
     return cats;
-  }, [projects]);
+  }, [allProjects]);
 
   const filteredProjects = activeFilter === 'الكل' 
-    ? projects 
-    : projects.filter(p => p.category === activeFilter);
+    ? allProjects 
+    : allProjects.filter(p => p.category === activeFilter);
 
-  const displayedProjects = filteredProjects.slice(0, visibleCount);
-  const hasMore = visibleCount < filteredProjects.length;
-
-  const handleLoadMore = () => {
-    if (isLoading) return;
-    setIsLoading(true);
-    
-    // Simulate professional loading delay for aesthetic feel
-    setTimeout(() => {
-      setVisibleCount(prev => prev + 3);
-      setIsLoading(false);
-    }, 1000);
-  };
+  // We show all loaded projects that match the filter (no more local slicing)
+  const displayedProjects = filteredProjects;
 
   return (
     <section id="work" className="py-24 px-6 md:px-12 max-w-[1350px] mx-auto" dir="rtl">
@@ -83,7 +122,7 @@ const SelectedWork: React.FC<SelectedWorkProps> = ({ projects, onProjectClick })
         </div>
         <div className="hidden lg:flex items-center gap-2 text-[#999999] text-xs font-black uppercase tracking-widest">
            <Layers size={14} />
-           <span>عرض {filteredProjects.length} مشروع</span>
+           <span>عرض {displayedProjects.length} مشروع</span>
         </div>
       </div>
 
@@ -124,12 +163,12 @@ const SelectedWork: React.FC<SelectedWorkProps> = ({ projects, onProjectClick })
             </div>
           </div>
         ))}
-        {projects.length > 0 && filteredProjects.length === 0 && (
+        {isDataLoaded && filteredProjects.length === 0 && (
           <div className="col-span-full py-20 text-center">
             <p className="text-[#999999] font-bold text-lg italic">لا توجد مشاريع في هذه الفئة حالياً...</p>
           </div>
         )}
-         {projects.length === 0 && (
+         {!isDataLoaded && (
           <div className="col-span-full py-32 flex justify-center">
              <Loader2 size={32} className="text-primary animate-spin" />
           </div>
@@ -137,7 +176,7 @@ const SelectedWork: React.FC<SelectedWorkProps> = ({ projects, onProjectClick })
       </div>
       
       {/* Modern Professional Load More Button */}
-      {hasMore && (
+      {isDataLoaded && hasMore && (
         <div className="reveal mt-16 text-center" style={{ transitionDelay: '200ms' }}>
           <button 
             onClick={handleLoadMore}
