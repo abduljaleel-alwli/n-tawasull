@@ -398,7 +398,7 @@ const Contact: React.FC = () => {
                   {/* Step 1 Content */}
                   <div className={`w-1/2 px-1 transition-all duration-500 delay-100 ${currentStep === 1 ? 'opacity-100 scale-100' : 'opacity-50 scale-95 pointer-events-none'}`}>
                       <div className="flex flex-col gap-8">
-                          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                          <div className="grid grid-cols-1 gap-8">
                               <div className="flex flex-col gap-3">
                                   <p className="text-[14px] font-black text-white/40 tracking-widest">الاسم بالكامل*</p>
                                   <input 
